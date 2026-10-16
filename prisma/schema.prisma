@@ -1,0 +1,304 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Схема базы данных для каталога скупки радиодеталей и лома драгметаллов
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Глобальные настройки (Singleton — всегда одна запись)
+// Содержит коэффициент наценки для всех товаров и контактные данные
+model GlobalSettings {
+  id          String   @id @default("global") // Фиксированный ID для единственной записи
+  priceMarkup Float    @default(1.0) // Глобальный коэффициент наценки (например, 1.15 = +15%)
+  updatedAt   DateTime @updatedAt
+
+  // Хеш пароля администратора (bcrypt)
+  adminPasswordHash String? // Если null — используется ADMIN_PASSWORD из env (для обратной совместимости)
+
+  // Контактные данные
+  phoneNumber      String @default("") // Контактный телефон
+  email            String @default("") // Почта
+  telegramUsername String @default("") // Никнейм или ссылка на Telegram
+  address          String @default("") // Адрес офиса
+  workSchedule     String @default("") // Режим работы
+
+  // Настройки Telegram-бота для уведомлений о заявках
+  telegramBotToken String @default("") // Токен бота (от @BotFather)
+  telegramChatId   String @default("") // Chat ID для отправки уведомлений
+
+  // Фото магазина (для страницы контактов)
+  storePhotoUrls String[] // URL фото магазина (до 3)
+
+  // Ссылка на ВКонтакте
+  vkLink String @default("") // Ссылка на группу/страницу VK
+
+  // Текст и фото для страницы "О нас"
+  aboutText     String? @db.Text
+  aboutPhotoUrl String? // URL фото для страницы "О компании"
+
+  // Плашка над шапкой (можно скрыть и менять текст в админке)
+  showArrivalNotice Boolean @default(true)
+  arrivalNoticeText String  @default("❗️Время прибытия необходимо согласовать заранее❗️")
+
+  // Скидки калькулятора по периоду года выпуска (проценты: until1990, from1990, from2000, from2010)
+  yearPeriodDiscounts Json @default("{\"until1990\":0,\"from1990\":10,\"from2000\":20,\"from2010\":40}")
+
+  // Общие пресеты цвета кнопки информационной страницы (массив hex-строк)
+  infoPageButtonColorPresets Json @default("[]")
+
+  // Попап акции (текст, не влияет на расчёт цен). promoUpdatedAt без @updatedAt.
+  promoEnabled   Boolean  @default(true)
+  promoText      String   @default("Подпишитесь на сообщество ВКонтакте — получите +1% к выплате") @db.Text
+  promoTerms     String   @default("Подпишитесь на наше сообщество ВКонтакте и напишите нам сообщение. Акция действует до указанной даты. Подробности уточняйте у менеджера.") @db.Text
+  promoUpdatedAt DateTime @default(now())
+  // Ссылка и подписи кнопки попапа. Пустой URL скрывает кнопку и подпись.
+  promoButtonUrl     String @default("")
+  promoButtonLabel   String @default("")
+  promoButtonCaption String @default("")
+
+  @@map("global_settings")
+}
+
+// Модель для хранения текущих курсов металлов
+// В системе всегда должна быть только одна активная запись
+model MetalRate {
+  id        String   @id @default("current") // Используем фиксированный ID для единственной записи
+  gold      Decimal  @db.Decimal(18, 10) // Цена золота за 1 грамм (руб)
+  silver    Decimal  @db.Decimal(18, 10) // Цена серебра за 1 грамм (руб)
+  platinum  Decimal  @db.Decimal(18, 10) // Цена платины за 1 грамм (руб)
+  palladium Decimal  @db.Decimal(18, 10) // Цена палладия за 1 грамм (руб)
+  tantalum  Decimal  @default(0) @db.Decimal(18, 10) // Цена тантала за 1 грамм (руб)
+  updatedAt DateTime @updatedAt
+
+  @@map("metal_rates")
+}
+
+enum CategoryBannerAlign {
+  LEFT
+  CENTER
+  RIGHT
+}
+
+enum CategoryBannerTheme {
+  SOFT
+  BRAND
+  ACCENT
+  NOTICE
+  IMAGE
+}
+
+// Модель категории с древовидной структурой (self-referencing)
+model Category {
+  id             String  @id @default(cuid())
+  name           String
+  slug           String  @unique
+  imageUrl       String? // URL изображения категории
+  parentId       String?
+  sortOrder      Int     @default(0) // Поле для сортировки на странице /catalog (корневые категории)
+  childSortOrder Int     @default(0) // Позиция родительской категории среди своих подкатегорий для отображения товаров
+  warningMessage String? @db.Text // Информационное предупреждение для категории (отображается на странице каталога)
+
+  // Баннер v2 на странице категории
+  bannerEnabled      Boolean             @default(false)
+  bannerTitle        String?
+  bannerText         String?             @db.Text
+  bannerAlign        CategoryBannerAlign @default(LEFT)
+  bannerTheme        CategoryBannerTheme @default(SOFT)
+  bannerImageUrl     String?
+  bannerLinkUrl      String?
+  bannerLinkLabel    String?
+  bannerTextColor    String? // CSS-цвет текста (hex), null = из стиля темы
+  bannerTitleLines   Boolean @default(false) // Декоративные линии по бокам заголовка
+  bannerShowGuide    Boolean             @default(true)
+
+  // CMS-страница категории (/catalog/[slug]/guide)
+  infoPageEnabled         Boolean @default(false)
+  infoPageButtonLabel     String?
+  infoPageButtonColor     String? // CSS-цвет фона кнопки (hex), null = primary-700
+  infoPageButtonTextColor String? // CSS-цвет текста кнопки (hex), null = белый
+  infoPageBlocks          Json    @default("[]")
+
+  // Закрепить управление курсом на Дашборде
+  isPinnedToDashboard Boolean @default(false)
+
+  // Кастомные курсы металлов для категории (если не заданы — используются глобальные)
+  customRateAu Float? // Курс золота для этой категории (руб/г)
+  customRateAg Float? // Курс серебра для этой категории (руб/г)
+  customRatePt Float? // Курс платины для этой категории (руб/г)
+  customRatePd Float? // Курс палладия для этой категории (руб/г)
+  customRateTa Float? // Курс тантала для этой категории (руб/г)
+
+  // Связи для древовидной структуры
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryTree")
+
+  // Связь с товарами
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+// Единица измерения товара
+enum UnitType {
+  PIECE // Штука (шт)
+  GRAM  // Грамм (г)
+  KG    // Килограмм (кг)
+}
+
+// Ручной флаг учёта золота в описи (AUTO = текущая логика по категории)
+enum InventoryMetalsMode {
+  AUTO
+  INCLUDE
+  EXCLUDE
+}
+
+// Модель товара (радиодеталь)
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description     String?  @db.Text // Краткое описание для карточки товара (2-3 предложения)
+  pageDescription String?  @db.Text // Полное описание на странице товара
+  image       String?  // URL изображения
+  categoryId  String
+  sortOrder   Int      @default(0) // Поле для ручной сортировки (меньше = выше)
+  unitType    UnitType @default(PIECE) // Единица измерения (PIECE = шт, GRAM = г, KG = кг)
+
+  // Наценка на товар (коэффициент: 0.9 = -10%, 1.0 = без наценки, 1.15 = +15%)
+  priceMarkup     Float   @default(1.0) // Наценка для НОВОГО или единого типа
+  priceMarkupUsed Float   @default(1.0) // Наценка для Б/У товаров
+  // Тип товара: true = одна цена (без разделения Новое/Б/У), false = две цены
+  isSingleType Boolean @default(false)
+  // Цена по запросу (скрывает цену, показывает "Цена по запросу")
+  isPriceOnRequest Boolean @default(false)
+  // Лицо категории на Главной (Showcase)
+  isShowcaseFace Boolean @default(false)
+  // Учёт Au в внутреннем отчёте и «Итого золотосодержащие» (не влияет на цену)
+  inventoryMetalsMode InventoryMetalsMode @default(AUTO)
+
+  // Содержание металлов в граммах для НОВЫХ товаров
+  contentGold      Decimal @default(0) @db.Decimal(18, 10)
+  contentSilver    Decimal @default(0) @db.Decimal(18, 10)
+  contentPlatinum  Decimal @default(0) @db.Decimal(18, 10)
+  contentPalladium Decimal @default(0) @db.Decimal(18, 10)
+  contentTantalum  Decimal @default(0) @db.Decimal(18, 10) // Тантал, граммы
+
+  // Содержание металлов в граммах для Б/У товаров (меньше из-за скушенных ножек и т.д.)
+  contentGoldUsed      Decimal @default(0) @db.Decimal(18, 10)
+  contentSilverUsed    Decimal @default(0) @db.Decimal(18, 10)
+  contentPlatinumUsed  Decimal @default(0) @db.Decimal(18, 10)
+  contentPalladiumUsed Decimal @default(0) @db.Decimal(18, 10)
+  contentTantalumUsed  Decimal @default(0) @db.Decimal(18, 10)
+
+  // Содержание для отображения на странице товара (не влияет на цену)
+  displayContentGold      Decimal @default(0) @db.Decimal(18, 10)
+  displayContentSilver    Decimal @default(0) @db.Decimal(18, 10)
+  displayContentPlatinum  Decimal @default(0) @db.Decimal(18, 10)
+  displayContentPalladium Decimal @default(0) @db.Decimal(18, 10)
+  displayContentTantalum  Decimal @default(0) @db.Decimal(18, 10)
+  // false = значения отображения синхронизируются с расчётным содержанием
+  displayContentCustomized Boolean @default(false)
+  // Показывать блок содержания на странице товара
+  showDisplayContent       Boolean @default(true)
+
+  // Настройки доступности по состоянию (Новое / Б/У)
+  isNewAvailable  Boolean @default(true) // Принимаем "Новое"
+  isUsedAvailable Boolean @default(true) // Принимаем "Б/У"
+
+  // Ручные цены для каждого состояния (если нужно перебить расчетную формулу)
+  manualPriceNew  Decimal? @db.Decimal(12, 2) // Фиксированная цена для "Нового"
+  manualPriceUsed Decimal? @db.Decimal(12, 2) // Фиксированная цена для "Б/У"
+
+  // SEO: кастомный H1 (если задан — используется вместо name на странице товара)
+  seoH1 String? @db.Text
+  // SEO: кастомный meta description (если задан — используется вместо авто-шаблона)
+  seoDescription String? @db.Text
+
+  // Флаг наличия модификаций (вариаций товара)
+  hasModifications Boolean @default(false)
+  // Название колонки для модификаций (по умолчанию "Модификация")
+  modLabel String @default("Модификация")
+
+  // Связь с категорией
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Связь с модификациями
+  modifications ProductModification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([slug])
+  @@map("products")
+}
+
+// Модификация товара (вариация: разные номиналы, контакты и т.д.)
+// Для каждой модификации хранится своё содержание металлов и рассчитывается своя цена
+model ProductModification {
+  id        String @id @default(cuid())
+  productId String
+  name      String // Например: "R = 1 кОм" или "Папа 10 контактов"
+
+  // Содержание металлов для НОВЫХ (Float, default 0)
+  contentAu Float @default(0)
+  contentAg Float @default(0)
+  contentPt Float @default(0)
+  contentPd Float @default(0)
+  contentTa Float @default(0)
+
+  // Содержание металлов для Б/У (Float, default 0)
+  contentAuUsed Float @default(0)
+  contentAgUsed Float @default(0)
+  contentPtUsed Float @default(0)
+  contentPdUsed Float @default(0)
+  contentTaUsed Float @default(0)
+
+  // Связь с товаром
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_modifications")
+}
+
+// Отзывы клиентов (модерация перед публикацией на главной)
+model Review {
+  id        String   @id @default(cuid())
+  name      String
+  text      String   @db.Text
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
+
+// SEO-статьи раздела «Полезная информация»
+model Article {
+  id             String   @id @default(cuid())
+  title          String
+  slug           String   @unique
+  excerpt        String?  @db.Text
+  body           String   @db.Text
+  imageUrl       String?
+  published      Boolean  @default(false)
+  seoTitle       String   @default("")
+  seoDescription String   @default("") @db.Text
+  authorName     String   @default("")
+  faq            Json     @default("[]")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([published, createdAt])
+  @@map("articles")
+}
+

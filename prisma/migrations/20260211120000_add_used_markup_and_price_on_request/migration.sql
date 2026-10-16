@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "products" ADD COLUMN "priceMarkupUsed" DOUBLE PRECISION NOT NULL DEFAULT 1.0;
+ALTER TABLE "products" ADD COLUMN "isPriceOnRequest" BOOLEAN NOT NULL DEFAULT false;

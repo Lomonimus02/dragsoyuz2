@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: radiodetali_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-radiodetali}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-radiodetali_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-radiodetali}
+    ports:
+      - "5477:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-radiodetali} -d ${POSTGRES_DB:-radiodetali}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - radiodetali_network
+
+  app:
+    image: ghcr.io/vjf2g46p6j-cloud/radiodetali:latest
+    container_name: radiodetali_app
+    restart: unless-stopped
+    ports:
+      - "3050:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-radiodetali}:${POSTGRES_PASSWORD:-radiodetali_secret}@db:5432/${POSTGRES_DB:-radiodetali}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - NODE_ENV=production
+    volumes:
+      - ./public/uploads:/app/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - radiodetali_network
+
+  # Сервис для запуска миграций (используем тот же образ)
+  migrate:
+    image: ghcr.io/vjf2g46p6j-cloud/radiodetali:latest
+    container_name: radiodetali_migrate
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-radiodetali}:${POSTGRES_PASSWORD:-radiodetali_secret}@db:5432/${POSTGRES_DB:-radiodetali}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - radiodetali_network
+    command: npx prisma migrate deploy --config prisma.config.ts
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  radiodetali_network:
+    driver: bridge

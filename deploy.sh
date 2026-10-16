@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# ============================================
+# Скрипт деплоя для radiodetali
+# ============================================
+
+set -e
+
+echo "🚀 Начинаем деплой radiodetali..."
+
+# 1. Создаем .env файл если его нет
+if [ ! -f .env ]; then
+    echo "📝 Создаем .env файл..."
+    cat > .env << EOF
+# Database
+POSTGRES_USER=radiodetali
+POSTGRES_PASSWORD=your_secure_password_here
+POSTGRES_DB=radiodetali
+
+# App
+ADMIN_PASSWORD=your_admin_password_here
+EOF
+    echo "⚠️  ВАЖНО: Отредактируйте .env файл и установите безопасные пароли!"
+    echo "   После редактирования запустите скрипт снова."
+    exit 1
+fi
+
+# 2. Создаем папку для загрузок
+echo "📁 Создаем папку uploads..."
+mkdir -p ./public/uploads
+chmod 777 ./public/uploads
+
+# 3. Останавливаем старые контейнеры (если есть)
+echo "🛑 Останавливаем старые контейнеры..."
+docker compose down 2>/dev/null || true
+
+# 4. Собираем и запускаем контейнеры
+echo "🔨 Собираем Docker образы..."
+docker compose build --no-cache
+
+echo "🚀 Запускаем контейнеры..."
+docker compose up -d
+
+# 5. Ждем пока база данных будет готова
+echo "⏳ Ожидаем готовности базы данных..."
+sleep 10
+
+# 6. Применяем миграции Prisma (запускаем локально, не в контейнере)
+echo "📊 Применяем миграции базы данных..."
+
+# Загружаем переменные из .env
+source .env
+
+# Формируем DATABASE_URL для локального запуска (через exposed порт)
+export DATABASE_URL="postgresql://${POSTGRES_USER:-radiodetali}:${POSTGRES_PASSWORD:-radiodetali_secret}@localhost:5477/${POSTGRES_DB:-radiodetali}"
+
+# Устанавливаем prisma если нужно и запускаем миграции
+npx prisma migrate deploy
+
+# 7. Запускаем сидинг (опционально)
+echo "🌱 Заполняем базу начальными данными..."
+npx prisma db seed || echo "⚠️  Сидинг пропущен или уже выполнен"
+
+echo ""
+echo "✅ Деплой завершен успешно!"
+echo ""
+echo "📍 Приложение доступно по адресу: http://your-server-ip:3050"
+echo "📍 База данных доступна на порту: 5433"
+echo ""
+echo "Полезные команды:"
+echo "  docker compose logs -f app    # Логи приложения"
+echo "  docker compose logs -f db     # Логи базы данных"
+echo "  docker compose restart app    # Перезапуск приложения"
+echo "  docker compose down            # Остановка всех сервисов"

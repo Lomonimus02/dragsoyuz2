@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "global_settings" ADD COLUMN IF NOT EXISTS "phoneNumber" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "global_settings" ADD COLUMN IF NOT EXISTS "email" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "global_settings" ADD COLUMN IF NOT EXISTS "telegramUsername" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "global_settings" ADD COLUMN IF NOT EXISTS "address" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "global_settings" ADD COLUMN IF NOT EXISTS "workSchedule" TEXT NOT NULL DEFAULT '';

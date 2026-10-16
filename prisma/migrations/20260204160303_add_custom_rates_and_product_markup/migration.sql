@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "categories" ADD COLUMN     "customRateAg" DOUBLE PRECISION,
+ADD COLUMN     "customRateAu" DOUBLE PRECISION,
+ADD COLUMN     "customRatePd" DOUBLE PRECISION,
+ADD COLUMN     "customRatePt" DOUBLE PRECISION;
+
+-- AlterTable
+ALTER TABLE "products" ADD COLUMN     "isSingleType" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "priceMarkup" DOUBLE PRECISION NOT NULL DEFAULT 1.0;

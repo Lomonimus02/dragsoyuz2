@@ -1,0 +1,293 @@
+@import "tailwindcss";
+
+/* Оформление драгсоюза. Второй магазин переопределит цвета в [data-theme="..."]. */
+:root {
+  /* Industrial Color Palette */
+  --background: #f8f9fa;
+  --foreground: #1a1a2e;
+  
+  /* Grays */
+  --gray-50: #f8f9fa;
+  --gray-100: #e9ecef;
+  --gray-200: #dee2e6;
+  --gray-300: #ced4da;
+  --gray-400: #adb5bd;
+  --gray-500: #6c757d;
+  --gray-600: #495057;
+  --gray-700: #343a40;
+  --gray-800: #212529;
+  --gray-900: #1a1a2e;
+  
+  /* Primary - Dark Blue */
+  --primary-50: #e7f1ff;
+  --primary-100: #d0e4ff;
+  --primary-200: #a3c9ff;
+  --primary-300: #75adff;
+  --primary-400: #4791ff;
+  --primary-500: #1a73e8;
+  --primary-600: #155bb8;
+  --primary-700: #104488;
+  --primary-800: #0a2d58;
+  --primary-900: #0f172a;
+  
+  /* Accent - Orange */
+  --accent-50: #fff7ed;
+  --accent-100: #ffedd5;
+  --accent-200: #fed7aa;
+  --accent-300: #fdba74;
+  --accent-400: #fb923c;
+  --accent-500: #f97316;
+  --accent-600: #ea580c;
+  --accent-700: #c2410c;
+  --accent-800: #9a3412;
+  --accent-900: #7c2d12;
+  
+  /* Success/Warning/Error */
+  --success: #22c55e;
+  --warning: #eab308;
+  --error: #ef4444;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary-500);
+  --color-primary-dark: var(--primary-700);
+  --color-accent: var(--accent-500);
+  --color-accent-dark: var(--accent-600);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  /* iOS / Telegram WebView: тёмный фон чтобы любой gap/rubber-band показывал тёмный */
+  background: var(--gray-700);
+  overflow: hidden;
+  /* 100% = ICB (часто stale после CriOS restore); 100dvh / --app-height ловят visual viewport */
+  height: 100%;
+  height: 100dvh;
+  height: var(--app-height, 100dvh);
+}
+
+body {
+  /* Тёмный фон body — WKWebView underPageBackgroundColor берёт его. */
+  background: var(--gray-700);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  overflow: hidden;
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Smooth transitions - only for interactive elements */
+a, button, input, select, textarea {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Price highlight animation */
+@keyframes priceHighlight {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.price-highlight:hover {
+  animation: priceHighlight 0.3s ease-in-out;
+}
+
+/* Infinite marquee animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.internal-report-title {
+  display: none;
+}
+
+.inventory-screen {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inventory-screen th,
+.inventory-screen td {
+  border: 1px solid var(--gray-300);
+}
+
+.inventory-screen th {
+  text-align: center;
+  background: var(--gray-100);
+}
+
+.inventory-screen td.col-num,
+.inventory-screen th.col-num {
+  text-align: center;
+}
+
+.inventory-screen td.col-name {
+  text-align: left;
+}
+
+.inventory-screen .group-title {
+  text-align: left;
+  font-weight: 700;
+  background: var(--gray-100);
+}
+
+@media print {
+  html,
+  body {
+    background: white !important;
+    color: #111 !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-width: 100%;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  jdiv,
+  #jivo_container,
+  #jivo-iframe-container,
+  #jvLabelWrap,
+  iframe[id*="jivo"],
+  iframe[src*="jivo"],
+  [id^="jivo"] {
+    display: none !important;
+  }
+
+  html.print-internal-report .admin-metal-report {
+    display: block !important;
+  }
+
+  html.print-internal-report .internal-report-title {
+    display: block !important;
+  }
+
+  html.print-internal-report .inventory-print-header,
+  html.print-internal-report .inventory-ledger {
+    display: none !important;
+  }
+
+  .inventory-print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .inventory-ledger {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 11px;
+    color: #000;
+  }
+
+  .inventory-ledger th,
+  .inventory-ledger td {
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid #000;
+    padding: 3px 5px;
+    vertical-align: middle;
+  }
+
+  .inventory-ledger th {
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .inventory-ledger .col-num {
+    width: 8%;
+    text-align: center;
+  }
+
+  .inventory-ledger .col-name {
+    width: 32%;
+    text-align: left;
+  }
+
+  .inventory-ledger .col-year,
+  .inventory-ledger .col-cond {
+    width: 12%;
+    text-align: center;
+  }
+
+  .inventory-ledger .col-qty {
+    width: 10%;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .inventory-ledger .col-price,
+  .inventory-ledger .col-sum {
+    width: 12%;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .inventory-ledger .col-sum {
+    padding-right: 8px;
+  }
+
+  .inventory-ledger .group-title {
+    text-align: left;
+    font-weight: 700;
+    background: #eee;
+  }
+
+  .inventory-ledger .group-total td,
+  .inventory-ledger .grand-total td {
+    font-weight: 700;
+  }
+
+  .inventory-ledger .gold-bearing-spacer td {
+    border: none;
+    height: 22px;
+  }
+
+  .inventory-print-section {
+    break-inside: avoid;
+  }
+}

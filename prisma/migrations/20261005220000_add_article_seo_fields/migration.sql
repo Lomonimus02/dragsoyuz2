@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "articles" ADD COLUMN "seoTitle" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "articles" ADD COLUMN "seoDescription" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "articles" ADD COLUMN "authorName" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "articles" ADD COLUMN "faq" JSONB NOT NULL DEFAULT '[]';
