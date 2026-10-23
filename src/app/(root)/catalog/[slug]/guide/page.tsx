@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, ArrowLeft, BookOpen } from "lucide-react";
+import { ChevronRight, ArrowLeft, BookOpen } from "@/app/(root)/components/icons";
 import { getCategoryBySlug } from "@/app/actions";
 import { CategoryInfoBlocks } from "@/app/(root)/components/CategoryInfoBlocks";
 import { parseInfoPageBlocks, resolveInfoButtonLabel } from "@/lib/category-info";
-import { SITE_URL as BASE_URL } from "@/lib/site";
+import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -29,19 +30,11 @@ export async function generateMetadata({
   );
   const canonicalUrl = `${BASE_URL}/catalog/${slug}/guide`;
 
-  return {
-    title,
+  return pageMetadata({
+    title: `${title} | ${SITE_BRAND}`,
     description: `${title} — скупка радиодеталей в Санкт-Петербурге.`,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title,
-      description: `${title} — скупка радиодеталей в Санкт-Петербурге.`,
-      type: "website",
-      url: canonicalUrl,
-    },
-  };
+    path: canonicalUrl,
+  });
 }
 
 export default async function CategoryGuidePage({ params }: GuidePageProps) {

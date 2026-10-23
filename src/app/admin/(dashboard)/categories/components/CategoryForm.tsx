@@ -1,5 +1,7 @@
 "use client";
 
+import { uploadPhoto } from "@/lib/upload-photo";
+
 import { useState, useTransition, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -9,6 +11,8 @@ import {
   updateCategory,
   type CategoryData,
 } from "@/app/actions";
+import { PurchaseCopyEditor } from "./PurchaseCopyEditor";
+import type { PurchaseCopySettings } from "@/lib/product-purchase-copy";
 import { CategoryBannerEditor } from "./CategoryBannerEditor";
 import { CategoryInfoPageEditor } from "./CategoryInfoPageEditor";
 import { getMetalLabel } from "@/lib/precious-metals";
@@ -99,6 +103,7 @@ export function CategoryForm({
   const [infoPageButtonLabel, setInfoPageButtonLabel] = useState(
     editCategory?.infoPageButtonLabel || "",
   );
+  const [purchaseCopySettings, setPurchaseCopySettings] = useState<PurchaseCopySettings>(editCategory?.purchaseCopySettings ?? {});
   const [infoPageBlocks, setInfoPageBlocks] = useState<CategoryInfoBlock[]>(
     () => parseInfoPageBlocks(editCategory?.infoPageBlocks),
   );
@@ -169,26 +174,8 @@ export function CategoryForm({
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-        credentials: "same-origin",
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("Upload failed:", response.status, text);
-        setNotification({
-          type: "error",
-          message: `Ошибка загрузки (${response.status}). Проверьте размер файла.`,
-        });
-        return;
-      }
-
-      const result = await response.json();
+      const url = await uploadPhoto(file);
+      const result = { success: true, url, error: "" };
 
       if (result.success) {
         setImageUrl(result.url);
@@ -202,11 +189,11 @@ export function CategoryForm({
           message: result.error || "Ошибка загрузки",
         });
       }
-    } catch (err) {
-      console.error("Upload error:", err);
+    } catch (error) {
+      console.error("Upload error:", error);
       setNotification({
         type: "error",
-        message: "Ошибка при загрузке файла. Попробуйте файл меньшего размера.",
+        message: error instanceof Error ? error.message : "Ошибка при загрузке файла",
       });
     } finally {
       setIsUploading(false);
@@ -222,6 +209,7 @@ export function CategoryForm({
   };
 
   const onSubmit = (data: FormData) => {
+    if (isUploading) return;
     setNotification(null);
 
     // Преобразуем кастомные курсы: пустая строка -> null, иначе число
@@ -260,6 +248,7 @@ export function CategoryForm({
           infoPageButtonColor: infoPageButtonColor.trim() || null,
           infoPageButtonTextColor: infoPageButtonTextColor.trim() || null,
           infoPageBlocks,
+          purchaseCopySettings,
           isPinnedToDashboard: data.isPinnedToDashboard,
           customRateAu: parseRate(data.customRateAu),
           customRateAg: parseRate(data.customRateAg),
@@ -291,6 +280,7 @@ export function CategoryForm({
           infoPageButtonColor: infoPageButtonColor.trim() || null,
           infoPageButtonTextColor: infoPageButtonTextColor.trim() || null,
           infoPageBlocks,
+          purchaseCopySettings,
           isPinnedToDashboard: data.isPinnedToDashboard,
           customRateAu: parseRate(data.customRateAu),
           customRateAg: parseRate(data.customRateAg),
@@ -479,6 +469,8 @@ export function CategoryForm({
             </div>
           )}
 
+          <PurchaseCopyEditor categoryName={watchName} categorySlug={watchSlug} value={purchaseCopySettings} onChange={setPurchaseCopySettings} />
+
           {/* Баннер категории */}
           <CategoryBannerEditor
             categoryName={watchName}
@@ -540,7 +532,7 @@ export function CategoryForm({
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
                       onChange={handleFileSelect}
                       disabled={isUploading}
                       className="hidden"
@@ -549,7 +541,7 @@ export function CategoryForm({
                 </div>
               )}
               <p className="text-xs text-slate-500">
-                JPG, PNG, WebP или GIF. Максимум 5MB.
+                JPG, PNG, WebP, GIF без анимации или HEIC — до 30 МБ. Большие снимки подготовим автоматически.
               </p>
               {/* Превью загрузки */}
               {imagePreview && isUploading && (
@@ -558,7 +550,7 @@ export function CategoryForm({
                     src={imagePreview}
                     alt="Загрузка..."
                     fill
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </div>
               )}
@@ -570,7 +562,7 @@ export function CategoryForm({
                       src={imageUrl}
                       alt="Фото категории"
                       fill
-                      className="object-cover"
+                      className="object-contain"
                       onError={() => {
                         console.error("Failed to load image:", imageUrl);
                         setNotification({
@@ -750,7 +742,7 @@ export function CategoryForm({
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || isUploading}
           className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200"
         >
           {isPending ? (

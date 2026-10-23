@@ -135,7 +135,7 @@ export function CategoryInfoPageEditor({
           Информационная страница
         </h3>
         <p className="mt-1 text-sm text-slate-500">
-          Кнопка под баннером открывает страницу с текстом и фото. Контент можно
+          Кнопка «Важная информация» под фотографией категории открывает страницу с текстом и фото. Контент можно
           подготовить заранее — кнопка и страница появятся на сайте только после
           публикации.
         </p>
@@ -570,7 +570,7 @@ function ImageBlockEditor({
       {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
       {block.url && (
         <div className="relative h-36 w-full max-w-md overflow-hidden rounded-lg border border-slate-200">
-          <Image src={block.url} alt={block.alt || "Фото блока"} fill className="object-cover" />
+          <Image src={block.url} alt={block.alt || "Фото блока"} fill className="object-contain" />
         </div>
       )}
       <input

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useCallback, useState, useRef } from "react";
-import Image from "next/image";
-import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { CatalogImage as Image } from "./CatalogImage";
+import { X, ZoomIn, ZoomOut, RotateCcw } from "@/app/(root)/components/icons";
 
 interface ImageModalProps {
   isOpen: boolean;

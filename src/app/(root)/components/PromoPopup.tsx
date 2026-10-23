@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, X } from "@/app/(root)/components/icons";
 import { PROMO_BUTTON_EMPTY_LABEL, promoButtonHref } from "@/lib/promo";
 import { BoldText } from "./BoldText";
 

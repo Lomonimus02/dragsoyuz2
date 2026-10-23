@@ -81,8 +81,8 @@ export function parseInfoPageBlocks(raw: unknown): CategoryInfoBlock[] {
   return blocks;
 }
 
-/** Фон кнопки по умолчанию (--primary-700) */
-export const INFO_PAGE_BUTTON_DEFAULT_COLOR = "#104488";
+/** Единый цвет кнопок «Важная информация» на РадиоКладе. */
+export const INFO_PAGE_BUTTON_DEFAULT_COLOR = "#DC2626";
 
 /** Встроенный пресет «Красный» */
 export const INFO_PAGE_BUTTON_RED_COLOR = "#DC2626";

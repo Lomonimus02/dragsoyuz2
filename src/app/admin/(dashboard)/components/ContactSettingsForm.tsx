@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { updateGlobalSettings, GlobalSettingsData } from "@/app/actions";
 import { Phone, Mail, MapPin, Clock, Send, Loader2, Check, Upload, X, ImageIcon, MessageCircle, Eye } from "lucide-react";
 import Image from "next/image";
+import { uploadPhoto } from "@/lib/upload-photo";
 
 interface ContactSettingsFormProps {
   initialData: GlobalSettingsData;
@@ -14,6 +15,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
     phoneNumber: initialData.phoneNumber || "",
     email: initialData.email || "",
     telegramUsername: initialData.telegramUsername || "",
+    whatsappNumber: initialData.whatsappNumber || "",
     vkLink: initialData.vkLink || "",
     address: initialData.address || "",
     workSchedule: initialData.workSchedule || "",
@@ -25,6 +27,8 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
   );
   const [storePhotoUrls, setStorePhotoUrls] = useState<string[]>(initialData.storePhotoUrls ?? []);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const uploadController = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -44,21 +48,19 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
       return;
     }
     setIsUploading(true);
+    setMessage(null);
+    const controller = new AbortController();
+    uploadController.current = controller;
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await fetch("/api/upload", { method: "POST", body: formData });
-      const result = await response.json();
-      if (result.success) {
-        setStorePhotoUrls(prev => [...prev, result.url]);
-        setMessage({ type: "success", text: "Фото загружено" });
-      } else {
-        setMessage({ type: "error", text: result.error || "Ошибка загрузки" });
-      }
-    } catch {
-      setMessage({ type: "error", text: "Ошибка при загрузке файла" });
+      const url = await uploadPhoto(file, { purpose: "store", signal: controller.signal, onStatus: setUploadStatus });
+      setStorePhotoUrls(prev => [...prev, url]);
+      setMessage({ type: "success", text: "Фото загружено. Нажмите «Сохранить контакты», чтобы показать его на сайте." });
+    } catch (error) {
+      setMessage({ type: "error", text: error instanceof Error ? error.message : "Ошибка загрузки. Попробуйте снова." });
     } finally {
       setIsUploading(false);
+      setUploadStatus("");
+      uploadController.current = null;
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -69,6 +71,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploading) return;
     setIsSubmitting(true);
     setMessage(null);
 
@@ -77,6 +80,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
         phoneNumber: form.phoneNumber,
         email: form.email,
         telegramUsername: form.telegramUsername,
+        whatsappNumber: form.whatsappNumber,
         vkLink: form.vkLink,
         address: form.address,
         workSchedule: form.workSchedule,
@@ -147,6 +151,29 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
         />
         <p className="text-xs text-slate-500 mt-1">
           Введите имя пользователя без @ (например: dragsoyuz)
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="whatsappNumber" className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-1.5">
+          <MessageCircle className="w-4 h-4 text-slate-400" />
+          Номер WhatsApp
+        </label>
+        <input
+          id="whatsappNumber"
+          name="whatsappNumber"
+          type="tel"
+          inputMode="tel"
+          maxLength={32}
+          value={form.whatsappNumber}
+          onChange={handleChange("whatsappNumber")}
+          placeholder="+7 (952) 282-83-83"
+          aria-describedby="whatsapp-help"
+          className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+        />
+        <p id="whatsapp-help" className="text-xs text-slate-500 mt-1">
+          Укажите номер с кодом страны, на котором подключён WhatsApp. Ссылка создаётся автоматически.
+          Оставьте поле пустым, чтобы скрыть WhatsApp на сайте.
         </p>
       </div>
 
@@ -227,24 +254,28 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
             </div>
           )}
           <p className="text-xs text-slate-500">
-            JPG, PNG, WebP, GIF или HEIC. Максимум 5MB. До 3 фотографий.
+            JPG, PNG, WebP, GIF или HEIC — до 30 МБ. Большие снимки подготовим автоматически. До 3 фотографий.
           </p>
+          {isUploading && <div role="status" className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+            <Loader2 className="h-4 w-4 animate-spin" />{uploadStatus}
+            <button type="button" className="underline" onClick={() => uploadController.current?.abort()}>Отменить загрузку</button>
+          </div>}
           {storePhotoUrls.length > 0 && (
             <div className="flex flex-wrap gap-3">
               {storePhotoUrls.map((url, index) => (
                 <div key={url} className="relative group">
-                  <div className="w-48 h-32 rounded-lg overflow-hidden border border-slate-200">
+                  <div className="relative w-48 h-32 rounded-lg overflow-hidden border border-slate-200">
                     <Image
                       src={url}
                       alt={`Фото магазина ${index + 1}`}
                       fill
-                      className="object-cover"
+                      className="object-contain bg-slate-50"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemovePhoto(index)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 transition-opacity shadow-sm"
                     title="Удалить"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -305,6 +336,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
       {/* Message */}
       {message && (
         <div
+          role={message.type === "error" ? "alert" : "status"}
           className={`px-4 py-3 rounded-lg text-sm flex items-center gap-2 ${
             message.type === "success"
               ? "bg-green-50 text-green-700 border border-green-200"
@@ -319,7 +351,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isUploading}
         className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg transition-colors"
       >
         {isSubmitting ? (

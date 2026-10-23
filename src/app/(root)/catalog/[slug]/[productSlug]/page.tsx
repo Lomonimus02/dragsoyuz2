@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/app/(root)/components/icons";
 import {
   getProductBySlug,
   getProducts,
@@ -14,6 +14,8 @@ import {
 import { ProductCard, ProductGridSkeleton } from "../../../components";
 import { ProductDetailView } from "../../../components/ProductDetailView";
 import { buildSellContactInfo, SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
+import { productPurchaseCopy } from "@/lib/product-purchase-copy";
 
 interface ProductPageProps {
   params: Promise<{ slug: string; productSlug: string }>;
@@ -40,8 +42,8 @@ export async function generateMetadata({
 
   const product = result.data;
   const canonicalUrl = `${BASE_URL}/catalog/${categorySlug}/${productSlug}`;
-  const seoName = product.seoH1 || product.name;
-  const autoDescription = `Сдать ${seoName} по высоким ценам в Санкт-Петербурге. Скупаем в любых объемах. Оценка по фото в мессенджере, оплата сразу, честное взвешивание. Компания ${SITE_BRAND} в СПб.`;
+  const copyCategory = await getCategoryBySlug(product.categorySlug);
+  const purchaseCopy = productPurchaseCopy(product, SITE_BRAND, copyCategory.success ? copyCategory.data.purchaseCopySettings : undefined);
 
   const imageUrl = product.image
     ? product.image.startsWith("http")
@@ -49,24 +51,12 @@ export async function generateMetadata({
       : `${BASE_URL}${product.image}`
     : undefined;
 
-  return {
-    title: {
-      absolute: `Скупаем ${seoName} по высоким ценам в Санкт-Петербурге | Любые объемы, честное взвешивание, оплата сразу | ${SITE_BRAND}`,
-    },
-    description: product.seoDescription || autoDescription,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: `Скупаем ${seoName} в Санкт-Петербурге | ${SITE_BRAND}`,
-      description:
-        product.seoDescription ||
-        `Сдать ${seoName} дорого в СПб. Оценка по фото, оплата сразу.`,
-      type: "website",
-      url: canonicalUrl,
-      images: imageUrl ? [{ url: imageUrl, alt: product.name }] : undefined,
-    },
-  };
+  return pageMetadata({
+    title: purchaseCopy.title,
+    description: product.seoDescription || purchaseCopy.metaDescription,
+    path: canonicalUrl,
+    image: imageUrl ? { url: imageUrl, alt: product.name } : undefined,
+  });
 }
 
 interface ProductSchemaProps {
@@ -110,7 +100,7 @@ function ProductSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
     />
   );
 }
@@ -222,6 +212,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const product = result.data;
   const displayPrice = getDisplayPrice(product);
+  const purchaseCopy = productPurchaseCopy(product, SITE_BRAND, category.purchaseCopySettings);
 
   const settingsResult = await getGlobalSettings();
   const settings = settingsResult.success ? settingsResult.data : null;
@@ -230,8 +221,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <>
       <ProductSchema
-        name={product.seoH1 || product.name}
-        description={product.pageDescription}
+        name={product.name}
+        description={[purchaseCopy.schemaDescription, product.pageDescription].filter(Boolean).join("\n\n")}
         image={product.image}
         price={displayPrice}
         categorySlug={categorySlug}
@@ -281,6 +272,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
           <ProductDetailView
+        purchaseCopy={purchaseCopy}
             product={product}
             categoryName={category.name}
             categorySlug={categorySlug}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import "../radioklad-info.css";
 import { Header, Footer, TopAlert, CartIndicator } from "./components";
-import { getGlobalSettings, isAuthenticated } from "@/app/actions";
+import { getGlobalSettings, isAuthenticated, getCategories } from "@/app/actions";
 import type { HeaderContactInfo } from "./components/Header";
 import type { FooterContactInfo } from "./components/Footer";
 import { JivoWidget } from "./components/JivoWidget";
@@ -8,7 +9,7 @@ import { PromoPopup } from "./components/PromoPopup";
 import { IosChromeRestoreReload } from "./components/IosChromeRestoreReload";
 import { SiteContactsProvider } from "./components/SiteContactsProvider";
 import { YearDiscountsProvider } from "./components/YearDiscountsProvider";
-import { buildSellContactInfo, formatPhoneHref, formatTelegramHref, SITE_BRAND } from "@/lib/site";
+import { buildSellContactInfo, formatPhoneHref, formatTelegramHref, SITE_BRAND, DEFAULT_SITE_EMAIL, DEFAULT_SITE_VK_URL } from "@/lib/site";
 import { DEFAULT_YEAR_PERIOD_DISCOUNTS } from "@/lib/year-discount";
 
 export const dynamic = "force-dynamic";
@@ -42,13 +43,16 @@ export default async function RootLayout({
   const settings = settingsResult.success ? settingsResult.data : null;
   const sellContactInfo = buildSellContactInfo(settings);
   const isAdmin = await isAuthenticated();
+  const categoriesResult = await getCategories(true);
+  const navigationCategories = categoriesResult.success ? categoriesResult.data.map(({name, slug}) => ({name, slug})) : [];
 
   // Формируем данные для Header
   const headerContactInfo: HeaderContactInfo | undefined = settings ? {
     phoneNumber: settings.phoneNumber || "+7 (812) 983-49-76",
     phoneHref: formatPhoneHref(settings.phoneNumber || "+78129834976"),
     telegramHref: formatTelegramHref(settings.telegramUsername || "dragsoyuz"),
-    vkHref: settings.vkLink || "https://vk.com/dragsoyuz",
+    vkHref: settings.vkLink?.trim() || DEFAULT_SITE_VK_URL,
+    whatsappHref: sellContactInfo.whatsappHref,
     workSchedule: settings.workSchedule?.split("\n")[0] || "Ежедневно с 10:00 до 20:00",
   } : undefined;
 
@@ -56,9 +60,10 @@ export default async function RootLayout({
   const footerContactInfo: FooterContactInfo | undefined = settings ? {
     phone: settings.phoneNumber || "+7 (812) 983-49-76",
     phoneRaw: (settings.phoneNumber || "+78129834976").replace(/[^\d+]/g, ""),
-    email: settings.email || "info@dragsoyuz.ru",
+    email: settings.email?.trim() || DEFAULT_SITE_EMAIL,
     telegram: (settings.telegramUsername || "dragsoyuz").replace(/^@/, "").replace(/^https?:\/\/t\.me\//, ""),
-    vkLink: settings.vkLink || "https://vk.com/dragsoyuz",
+    vkLink: settings.vkLink?.trim() || DEFAULT_SITE_VK_URL,
+    whatsappHref: sellContactInfo.whatsappHref,
     address: settings.address || "г. Санкт-Петербург",
     workSchedule: settings.workSchedule 
       ? settings.workSchedule.split("\n").filter(line => line.trim())
@@ -77,7 +82,7 @@ export default async function RootLayout({
           show={settings?.showArrivalNotice ?? true}
           text={settings?.arrivalNoticeText}
         />
-        <Header contactInfo={headerContactInfo} />
+        <Header contactInfo={headerContactInfo} categories={navigationCategories} />
       </div>
       <main className="flex-1">{children}</main>
       <div className="print:hidden">

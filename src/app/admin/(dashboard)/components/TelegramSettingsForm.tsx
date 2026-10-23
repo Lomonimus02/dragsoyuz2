@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { updateGlobalSettings, GlobalSettingsData } from "@/app/actions";
 import { Bot, MessageSquare, Loader2, Check, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { SITE_BRAND } from "@/lib/site";
+import { IS_LOCAL_PREVIEW, SITE_BRAND } from "@/lib/site";
 
 interface TelegramSettingsFormProps {
   initialData: GlobalSettingsData;
@@ -50,6 +50,10 @@ export function TelegramSettingsForm({ initialData }: TelegramSettingsFormProps)
   };
 
   const handleTestMessage = async () => {
+    if (IS_LOCAL_PREVIEW) {
+      setMessage({ type: "error", text: "Отправка сообщений отключена в локальной версии." });
+      return;
+    }
     if (!form.telegramBotToken.trim() || !form.telegramChatId.trim()) {
       setMessage({ type: "error", text: "Заполните оба поля перед тестированием" });
       return;

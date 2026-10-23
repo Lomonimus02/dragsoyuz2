@@ -1,6 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
+import { assertLocalPreviewDatabase } from "./local-preview";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -22,8 +23,12 @@ function getSchemaFingerprint(): string {
 }
 
 function createPrismaClient() {
+  if (process.env.LOCAL_PREVIEW === "1") {
+    assertLocalPreviewDatabase(process.env.DATABASE_URL);
+  }
   const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
+    max: Number(process.env.DATABASE_POOL_SIZE || 10),
   });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });

@@ -25,6 +25,7 @@ model GlobalSettings {
   phoneNumber      String @default("") // Контактный телефон
   email            String @default("") // Почта
   telegramUsername String @default("") // Никнейм или ссылка на Telegram
+  whatsappNumber   String @default("") // Номер WhatsApp с кодом страны; пустой скрывает кнопки
   address          String @default("") // Адрес офиса
   workSchedule     String @default("") // Режим работы
 
@@ -123,6 +124,7 @@ model Category {
   infoPageButtonColor     String? // CSS-цвет фона кнопки (hex), null = primary-700
   infoPageButtonTextColor String? // CSS-цвет текста кнопки (hex), null = белый
   infoPageBlocks          Json    @default("[]")
+  purchaseCopySettings    Json?
 
   // Закрепить управление курсом на Дашборде
   isPinnedToDashboard Boolean @default(false)

@@ -1,0 +1,226 @@
+/* Information pages: new storefront layouts, independent of admin styles. */
+.rk-info-page { background: #f7f6f1; color: #252b27; padding-bottom: 76px; }
+.rk-info-page h2 { font-size: 30px; line-height: 1.2; }
+.rk-info-page h3 { font-size: 23px; line-height: 1.25; font-weight: 600; }
+.rk-info-page p { font-size: 18px; line-height: 1.65; color: #5a655b; }
+.rk-info-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding-block: 24px; font-size: 15px; color: #687266; }
+.rk-info-breadcrumb a:hover { color: #214c3c; }
+.rk-info-breadcrumb [aria-current] { color: #354b3d; }
+.rk-info-intro { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: center; gap: 64px; padding: 32px 0 54px; border-bottom: 1px solid #d8ddd1; }
+.rk-info-intro h1, .rk-selling-intro h2 { font-size: clamp(38px, 4.6vw, 60px); line-height: 1.08; font-weight: 700; letter-spacing: -.025em; text-wrap: balance; }
+.rk-info-intro .rk-info-lead { font-size: 21px; line-height: 1.6; max-width: 620px; }
+.rk-postal-intro h1 + .rk-info-lead { margin-top: 24px; }
+.rk-info-cta { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 48px; padding: 36px 0 0; margin-top: 52px; border-top: 1px solid #cbd4c2; }
+.rk-info-cta h2 { font-size: 32px; }
+.rk-info-cta p { margin-top: 14px; max-width: 680px; }
+.rk-info-cta-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.rk-info-cta .rk-button { min-width: 190px; }
+
+/* Postal: horizontal route, then delivery note and a wide application form. */
+.rk-postal-intro { grid-template-columns: minmax(0, 1.6fr) minmax(240px, .7fr); }
+.rk-postal-assurance { justify-self: end; padding: 8px 0 8px 42px; border-left: 1px dashed #a9b8a1; min-width: 260px; color: #36583d; }
+.rk-postal-assurance .rk-postal-package { width: 72px; height: 72px; margin-bottom: 24px; }
+.rk-postal-assurance > div { display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 19px; font-weight: 500; }
+.rk-postal-assurance > div svg { width: 24px; height: 24px; }
+.rk-postal-process { padding-block: 42px 48px; }
+.rk-postal-route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; padding: 0; margin: 32px 0 0; }
+.rk-postal-route li { position: relative; padding-right: 42px; }
+.rk-postal-route li:not(:last-child)::before { content: ""; position: absolute; top: 22px; left: 44px; right: 0; height: 1px; background: #c8d2c0; }
+.rk-route-number { display: grid; place-items: center; width: 44px; height: 44px; background: #e6ecde; border: 1px solid #b7c7ab; border-radius: 6px; font-size: 23px; font-weight: 600; color: #34503c; margin-bottom: 22px; }
+.rk-postal-route p { margin-top: 10px; }
+.rk-postal-request { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr); gap: 40px; align-items: start; }
+.rk-delivery-note { display: flex; flex-direction: column; min-height: 390px; padding: 36px; background: #284b3a; color: #fffef5; border-radius: 8px; }
+.rk-delivery-note .rk-delivery-icon { width: 48px; height: 48px; margin-bottom: 38px; color: #d4dfbf; }
+.rk-delivery-note h3 { font-size: 28px; }
+.rk-delivery-note p { color: #e0e7d9; margin-top: 16px; }
+.rk-delivery-note strong { color: #fffef5; font-weight: 500; }
+.rk-delivery-track { display: flex; justify-content: space-between; position: relative; padding-top: 36px; margin-top: auto; }
+.rk-delivery-track::before { content: ""; position: absolute; left: 4px; right: 4px; bottom: 4px; border-top: 1px dashed #8da58d; }
+.rk-delivery-track span { width: 9px; height: 9px; border: 1px solid #c7d4b6; background: #284b3a; border-radius: 50%; z-index: 1; }
+.rk-postal-form-panel { border: 1px solid #dce1d4; border-radius: 8px; padding: 36px; background: #fffefb; }
+.rk-form-heading { padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid #e0e4d9; }
+.rk-form-heading p { margin-top: 10px; }
+.rk-postal-form { display: grid; gap: 24px; }
+.rk-form-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.rk-form-field { min-width: 0; }
+.rk-form-field label { display: block; margin-bottom: 9px; font-size: 17px; font-weight: 500; }
+.rk-form-field label > span:not(.rk-required) { color: #727c6b; font-weight: 400; }
+.rk-form-field .rk-required { color: #a44d32; }
+.rk-form-field input, .rk-form-field textarea { width: 100%; min-width: 0; padding: 14px 16px; font: inherit; font-size: 18px; line-height: 1.4; background: #f5f5ee; border: 1px solid #ccd4c3; color: #26392d; }
+.rk-form-field textarea { resize: vertical; min-height: 132px; }
+.rk-form-field input::placeholder, .rk-form-field textarea::placeholder { color: #778070; opacity: 1; }
+.rk-form-field input:focus, .rk-form-field textarea:focus { background: #fff; border-color: #35654b; }
+.rk-form-submit { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 22px; }
+.rk-form-submit p { font-size: 14px; line-height: 1.5; }
+.rk-form-submit button:disabled { opacity: .6; }
+.rk-form-error { border: 1px solid #e5b6a6; background: #fcf0eb; color: #923c28; padding: 14px 18px; border-radius: 6px; }
+.rk-postal-success { padding-block: 24px; }
+.rk-postal-success > svg { width: 48px; height: 48px; color: #35654b; margin-bottom: 18px; }
+.rk-postal-success p { margin-top: 10px; }
+.rk-postal-success button { margin-top: 24px; }
+
+/* Contacts: a prominent phone panel and a compact directory of channels. */
+.rk-contact-intro { border-bottom: 0; }
+.rk-contact-desk { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid #cfd8c6; border-radius: 8px; overflow: hidden; }
+.rk-contact-phone { display: flex; flex-direction: column; align-items: flex-start; position: relative; justify-content: center; padding: 40px; background: #e4eada; color: #254534; min-height: 312px; }
+.rk-contact-label { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 400; color: #5c7056; }
+.rk-contact-label svg { width: 24px; height: 24px; }
+.rk-contact-phone strong { display: block; font-size: clamp(32px, 3.2vw, 44px); font-weight: 600; line-height: 1.2; margin-top: 22px; white-space: nowrap; letter-spacing: -.02em; }
+.rk-contact-arrow { width: 28px; height: 28px; margin-top: 26px; }
+.rk-contact-phone:hover { background: #dce5cf; }
+.rk-contact-channels { background: #fffefb; padding-inline: 30px; }
+.rk-contact-channels > a { display: flex; align-items: center; gap: 20px; padding-block: 24px; min-height: 104px; }
+.rk-contact-channels > a:not(:last-child) { border-bottom: 1px solid #e0e5d8; }
+.rk-contact-channels > a > svg:first-child { width: 28px; height: 28px; color: #45623f; }
+.rk-contact-channels > a > span { min-width: 0; }
+.rk-contact-channels strong { display: block; margin-top: 3px; font-size: 22px; font-weight: 500; overflow-wrap: anywhere; }
+.rk-contact-channels .rk-channel-arrow { width: 20px; height: 20px; margin-left: auto; color: #6e8065; }
+.rk-contact-channels a:hover strong { color: #35654b; }
+.rk-visit-panel { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr); border: 1px solid #dbe1d2; border-radius: 8px; overflow: hidden; margin-top: 36px; background: #fffefb; }
+.rk-visit-details { padding: 34px; }
+.rk-visit-details h2 { display: flex; align-items: center; gap: 12px; color: #5a6b50; font-size: 18px; font-weight: 500; letter-spacing: 0; }
+.rk-visit-details h2 svg { width: 24px; height: 24px; }
+.rk-visit-details .rk-visit-address { font-size: 25px; line-height: 1.4; color: #293f31; margin-top: 18px; font-weight: 500; }
+.rk-visit-hours { margin-top: 30px; padding-top: 28px; border-top: 1px solid #dce3d2; }
+.rk-visit-hours > div { margin-top: 16px; }
+.rk-visit-hours p { font-size: 18px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rk-contact-map { position: relative; background: #e7eadf; min-height: 360px; }
+.rk-contact-map iframe { position: absolute; inset: 0; border: 0; }
+.rk-map-preview { height: 100%; min-height: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; background-image: linear-gradient(#d9e0cf80 1px, transparent 1px), linear-gradient(90deg, #d9e0cf80 1px, transparent 1px); background-size: 40px 40px; color: #4c6640; }
+.rk-map-preview > svg { width: 54px; height: 54px; margin-bottom: 20px; }
+.rk-map-preview > span { font-size: 15px; color: #65745b; }
+.rk-map-preview p { color: #355039; font-size: 24px; font-weight: 500; margin-block: 8px 22px; }
+.rk-map-preview .rk-button { background: #f7f8f0; font-size: 17px; min-height: 48px; }
+.rk-store-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-top: 36px; }
+.rk-store-gallery[data-count="1"] { grid-template-columns: 1fr; }
+.rk-store-photo { display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden; background: #e7eadf; }
+
+.rk-store-image { display: block; width: 100%; height: auto; max-height: 720px; object-fit: contain; }
+
+/* About: quiet editorial layout with the existing content and optional photo. */
+.rk-company-heading { background: #e9edde; border-bottom: 1px solid #d8dfcf; }
+.rk-company-heading .rk-info-intro { border: 0; padding-block: 30px 58px; }
+.rk-company-heading .rk-info-lead { max-width: 480px; }
+.rk-company-story { display: grid; grid-template-columns: minmax(0, .55fr) minmax(0, 1.45fr); gap: 64px; padding-block: 58px; }
+.rk-company-story h2 { padding-top: 5px; }
+.rk-company-copy { min-width: 0; border-left: 2px solid #c18d65; padding-left: 28px; }
+.rk-company-copy p { font-size: 20px; line-height: 1.8; overflow-wrap: anywhere; }
+.rk-company-copy .rk-company-empty { color: #727b69; }
+.rk-company-photo { position: relative; aspect-ratio: 4 / 3; margin-top: 28px; border-radius: 8px; overflow: hidden; }
+.rk-company-values { display: grid; grid-template-columns: minmax(0, .55fr) minmax(0, 1.45fr); gap: 64px; padding-top: 36px; border-top: 1px solid #d8ded0; }
+.rk-company-values-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 36px; }
+.rk-company-values-grid article { display: flex; align-items: flex-start; gap: 18px; }
+.rk-company-values-grid article > svg { width: 28px; height: 28px; color: #4c6c40; margin-top: 2px; }
+.rk-company-values-grid p { margin-top: 10px; font-size: 17px; }
+.rk-company-cta { background: #eeeee4; border: 1px solid #d9dfd0; border-radius: 8px; padding: 32px; }
+.rk-company-cta h2 { font-size: 28px; }
+.rk-company-cta .rk-info-cta-actions { flex-direction: column; }
+
+/* How to sell: numbered open rows, with the important note beside the guide. */
+.rk-selling-intro { grid-template-columns: minmax(0, 1fr) auto; }
+.rk-selling-intro h1 span, .rk-selling-intro h2 span { display: block; color: #436345; margin-top: 8px; }
+.rk-selling-emblem { display: grid; place-items: center; width: 144px; height: 144px; border: 1px solid #b9c7ae; border-radius: 8px; background: #e9edde; transform: rotate(-5deg); margin-right: 16px; }
+.rk-selling-emblem svg { width: 74px; height: 74px; color: #45633c; }
+.rk-selling-layout { display: grid; grid-template-columns: minmax(0, .65fr) minmax(0, 1.6fr); gap: 64px; padding-top: 42px; align-items: start; }
+.rk-selling-steps { grid-column: 2; grid-row: 1; list-style: none; padding: 0; margin: 0; }
+.rk-selling-steps li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 24px; padding-block: 32px; border-top: 1px solid #d4ddca; }
+.rk-selling-steps li:first-child { padding-top: 0; border: 0; }
+.rk-selling-steps li:last-child { padding-bottom: 0; }
+.rk-selling-step-marker { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; color: #607c52; }
+.rk-selling-step-marker span { font-size: 48px; font-weight: 500; line-height: 1; }
+.rk-selling-step-marker svg { width: 30px; height: 30px; }
+.rk-selling-steps h3 { font-size: 25px; }
+.rk-selling-steps h3 span { color: #648052; font-weight: 400; }
+.rk-selling-steps p { margin-top: 12px; max-width: 640px; }
+.rk-selling-note { grid-column: 1; grid-row: 1; background: #e6ecdc; border-top: 3px solid #7b9363; padding: 28px; border-radius: 0 0 6px 6px; }
+.rk-selling-note > svg { width: 32px; height: 32px; color: #49633e; margin-bottom: 24px; }
+.rk-selling-note h2 { font-size: 24px; }
+.rk-selling-note p { margin-top: 14px; color: #506249; }
+
+@media (max-width: 1023px) {
+  .rk-info-intro { gap: 32px; }
+  .rk-info-intro h1, .rk-selling-intro h2 { font-size: 46px; }
+  .rk-postal-request { grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 24px; }
+  .rk-delivery-note, .rk-postal-form-panel { padding: 26px; }
+  .rk-form-pair, .rk-form-submit { grid-template-columns: 1fr; }
+  .rk-form-submit { gap: 14px; }
+  .rk-contact-phone { padding: 30px; }
+  .rk-contact-phone strong { font-size: 34px; }
+  .rk-contact-channels { padding-inline: 24px; }
+  .rk-visit-panel { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+  .rk-visit-details { padding: 28px; }
+  .rk-company-story, .rk-company-values, .rk-selling-layout { gap: 36px; }
+  .rk-company-values { grid-template-columns: 1fr; }
+  .rk-info-cta { gap: 30px; }
+}
+@media (max-width: 767px) {
+  .rk-info-page { padding-bottom: 44px; }
+  .rk-info-breadcrumb { padding-block: 20px; font-size: 14px; }
+  .rk-info-intro { grid-template-columns: 1fr; gap: 22px; padding-block: 20px 32px; }
+  .rk-info-intro h1, .rk-selling-intro h2 { font-size: clamp(34px, 8.8vw, 44px); }
+  .rk-info-intro .rk-info-lead { font-size: 19px; line-height: 1.6; }
+  .rk-info-page h2 { font-size: 27px; }
+  .rk-info-page h3 { font-size: 22px; }
+  .rk-info-page p { font-size: 17px; }
+  .rk-postal-assurance { justify-self: stretch; display: flex; flex-wrap: wrap; gap: 12px 22px; padding: 20px 0 0; border: 0; border-top: 1px dashed #bac6ad; min-width: 0; }
+  .rk-postal-assurance .rk-postal-package { display: none; }
+  .rk-postal-assurance > div { margin: 0; font-size: 16px; gap: 8px; }
+  .rk-postal-assurance > div svg { width: 21px; height: 21px; }
+  .rk-postal-process { padding-block: 30px 32px; }
+  .rk-postal-route { grid-template-columns: 1fr; margin-top: 26px; }
+  .rk-postal-route li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 18px; padding: 0 0 26px; }
+  .rk-postal-route li:last-child { padding-bottom: 0; }
+  .rk-postal-route li:not(:last-child)::before { top: 40px; bottom: 0; left: 19px; right: auto; width: 1px; height: auto; }
+  .rk-route-number { width: 40px; height: 40px; font-size: 22px; margin: 0; }
+  .rk-postal-route h3 { margin-top: 6px; }
+  .rk-postal-route p { margin-top: 8px; }
+  .rk-postal-request { grid-template-columns: 1fr; gap: 24px; }
+  .rk-delivery-note { min-height: 0; padding: 24px; }
+  .rk-delivery-note .rk-delivery-icon { width: 36px; height: 36px; margin-bottom: 22px; }
+  .rk-delivery-note h3 { font-size: 26px; }
+  .rk-delivery-track { display: none; }
+  .rk-postal-form-panel { padding: 24px 20px; }
+  .rk-form-heading { padding-bottom: 20px; margin-bottom: 22px; }
+  .rk-form-pair { gap: 24px; }
+  .rk-form-submit p { font-size: 14px; }
+  .rk-contact-desk { grid-template-columns: 1fr; }
+  .rk-contact-phone { padding: 28px 24px; min-height: 0; }
+  .rk-contact-phone strong { font-size: clamp(30px, 8vw, 40px); margin-top: 14px; }
+  .rk-contact-arrow { position: absolute; right: 24px; top: 26px; margin: 0; width: 22px; height: 22px; }
+  .rk-contact-channels { padding-inline: 24px; }
+  .rk-contact-channels > a { min-height: 96px; padding-block: 20px; gap: 16px; }
+  .rk-contact-channels strong { font-size: 21px; }
+  .rk-visit-panel { grid-template-columns: 1fr; margin-top: 26px; }
+  .rk-visit-details { padding: 26px 24px; }
+  .rk-visit-details h2 { font-size: 18px; }
+  .rk-visit-details .rk-visit-address { font-size: 24px; }
+  .rk-visit-hours { margin-top: 24px; padding-top: 24px; }
+  .rk-contact-map { min-height: 300px; }
+  .rk-store-gallery { grid-template-columns: 1fr; gap: 16px; margin-top: 26px; }
+  .rk-info-cta { grid-template-columns: 1fr; gap: 24px; padding-top: 28px; margin-top: 32px; }
+  .rk-info-cta .rk-button { width: 100%; }
+  .rk-info-cta-actions { flex-direction: column; }
+  .rk-company-heading .rk-info-intro { padding-block: 20px 36px; }
+  .rk-company-story { grid-template-columns: 1fr; gap: 20px; padding-block: 36px; }
+  .rk-company-copy { padding-left: 20px; }
+  .rk-company-copy p { font-size: 18px; }
+  .rk-company-values { gap: 26px; padding-top: 30px; }
+  .rk-company-values-grid { grid-template-columns: 1fr; gap: 0; }
+  .rk-company-values-grid article { padding-block: 22px; border-top: 1px solid #dce1d4; }
+  .rk-company-values-grid article:first-child { padding-top: 0; border: 0; }
+  .rk-company-values-grid article:last-child { padding-bottom: 0; }
+  .rk-company-values-grid p { margin-top: 8px; }
+  .rk-company-cta { padding: 26px 22px; }
+  .rk-selling-intro { grid-template-columns: 1fr; }
+  .rk-selling-intro h1 span, .rk-selling-intro h2 span { margin-top: 10px; }
+  .rk-selling-emblem { display: none; }
+  .rk-selling-layout { grid-template-columns: 1fr; padding-top: 30px; gap: 32px; }
+  .rk-selling-steps, .rk-selling-note { grid-column: auto; grid-row: auto; }
+  .rk-selling-steps li { grid-template-columns: 40px minmax(0, 1fr); gap: 18px; padding-block: 26px; }
+  .rk-selling-step-marker { gap: 14px; }
+  .rk-selling-step-marker span { font-size: 38px; }
+  .rk-selling-step-marker svg { width: 25px; height: 25px; }
+  .rk-selling-steps h3 { font-size: 23px; line-height: 1.35; }
+  .rk-selling-note { padding: 24px; }
+  .rk-selling-note h2 { font-size: 24px; }
+}

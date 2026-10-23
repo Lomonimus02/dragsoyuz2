@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { isAuthenticated } from "./auth";
+import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
 import {
   DEFAULT_PROMO_BUTTON_CAPTION,
   DEFAULT_PROMO_BUTTON_LABEL,
@@ -66,6 +67,7 @@ export interface GlobalSettingsData {
   phoneNumber: string;
   email: string;
   telegramUsername: string;
+  whatsappNumber: string;
   address: string;
   workSchedule: string;
   // Ссылка на ВКонтакте
@@ -104,6 +106,7 @@ export interface UpdateGlobalSettingsInput {
   phoneNumber?: string;
   email?: string;
   telegramUsername?: string;
+  whatsappNumber?: string;
   address?: string;
   workSchedule?: string;
   vkLink?: string;
@@ -214,6 +217,7 @@ export async function getMetalRates(): Promise<MetalRatesResult> {
 export async function updateMetalRates(
   input: UpdateMetalRatesInput
 ): Promise<MetalRatesResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     // Валидация входных данных
     if (
@@ -284,6 +288,7 @@ function serializeGlobalSettings(settings: {
   address: string;
   workSchedule: string;
   vkLink: string | null;
+  whatsappNumber?: string | null;
   telegramBotToken: string;
   telegramChatId: string;
   storePhotoUrls: string[];
@@ -311,6 +316,7 @@ function serializeGlobalSettings(settings: {
     address: settings.address,
     workSchedule: settings.workSchedule,
     vkLink: settings.vkLink ?? "",
+    whatsappNumber: settings.whatsappNumber ?? "",
     telegramBotToken: settings.telegramBotToken,
     telegramChatId: settings.telegramChatId,
     storePhotoUrls: settings.storePhotoUrls ?? [],
@@ -366,10 +372,12 @@ export async function getGlobalSettings(): Promise<GlobalSettingsResult> {
       });
     }
 
-    return {
-      success: true,
-      data: serializeGlobalSettings(settings),
-    };
+    const data = serializeGlobalSettings(settings);
+    if (!(await isAuthenticated())) {
+      data.telegramBotToken = "";
+      data.telegramChatId = "";
+    }
+    return { success: true, data };
   } catch (error) {
     console.error("Ошибка при получении глобальных настроек:", error);
     return {
@@ -387,6 +395,7 @@ export async function getGlobalSettings(): Promise<GlobalSettingsResult> {
 export async function updateGlobalSettings(
   input: UpdateGlobalSettingsInput
 ): Promise<GlobalSettingsResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     // Валидация входных данных (только если priceMarkup передан)
     if (input.priceMarkup !== undefined) {
@@ -421,6 +430,13 @@ export async function updateGlobalSettings(
       }
     }
 
+    const whatsappNumber = input.whatsappNumber === undefined
+      ? undefined
+      : typeof input.whatsappNumber === "string" ? normalizeWhatsAppNumber(input.whatsappNumber) : null;
+    if (whatsappNumber === null) {
+      return { success: false, error: "Введите номер WhatsApp с кодом страны, например +7 (952) 282-83-83" };
+    }
+
     // Собираем данные для обновления
     const updateData: Partial<UpdateGlobalSettingsInput> = {};
     if (input.priceMarkup !== undefined) updateData.priceMarkup = input.priceMarkup;
@@ -430,6 +446,7 @@ export async function updateGlobalSettings(
     if (input.address !== undefined) updateData.address = input.address;
     if (input.workSchedule !== undefined) updateData.workSchedule = input.workSchedule;
     if (input.vkLink !== undefined) updateData.vkLink = input.vkLink;
+    if (whatsappNumber !== undefined) updateData.whatsappNumber = whatsappNumber;
     if (input.telegramBotToken !== undefined) updateData.telegramBotToken = input.telegramBotToken;
     if (input.telegramChatId !== undefined) updateData.telegramChatId = input.telegramChatId;
     if (input.storePhotoUrls !== undefined) updateData.storePhotoUrls = input.storePhotoUrls;
@@ -457,6 +474,7 @@ export async function updateGlobalSettings(
         address: input.address ?? "",
         workSchedule: input.workSchedule ?? "",
         vkLink: input.vkLink ?? "",
+        whatsappNumber: whatsappNumber ?? "",
         telegramBotToken: input.telegramBotToken ?? "",
         telegramChatId: input.telegramChatId ?? "",
         storePhotoUrls: input.storePhotoUrls ?? [],
@@ -603,6 +621,7 @@ export async function getPriceMarkup(): Promise<number> {
 export async function saveInfoPageButtonColorPreset(
   hex: string,
 ): Promise<GlobalSettingsResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     const color = normalizeInfoPageButtonColor(hex);
     if (!color) {

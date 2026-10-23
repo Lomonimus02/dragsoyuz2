@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
  * Читает токен и Chat ID из GlobalSettings в БД
  */
 export async function sendTelegramMessage(text: string): Promise<boolean> {
+  if (process.env.LOCAL_PREVIEW === "1") {
+    return false;
+  }
   try {
     const settings = await prisma.globalSettings.findUnique({
       where: { id: "global" },

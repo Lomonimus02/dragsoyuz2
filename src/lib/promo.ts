@@ -1,3 +1,5 @@
+import { DEFAULT_SITE_VK_URL } from "./site";
+
 /** Текст попапа по умолчанию. Это объявление, не коэффициент калькулятора. */
 export const DEFAULT_PROMO_TEXT =
   "Подпишитесь на сообщество ВКонтакте — получите +1% к выплате";
@@ -5,7 +7,7 @@ export const DEFAULT_PROMO_TEXT =
 export const DEFAULT_PROMO_TERMS =
   "Подпишитесь на наше сообщество ВКонтакте и напишите нам сообщение. Акция действует до указанной даты. Подробности уточняйте у менеджера.";
 
-export const DEFAULT_PROMO_BUTTON_URL = "https://vk.com/dragsoyuz";
+export const DEFAULT_PROMO_BUTTON_URL = DEFAULT_SITE_VK_URL;
 
 export const DEFAULT_PROMO_BUTTON_LABEL = "Условия акции во ВКонтакте";
 

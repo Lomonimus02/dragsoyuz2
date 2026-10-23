@@ -1,5 +1,5 @@
 import { getMetalRates } from "@/app/actions";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp } from "@/app/(root)/components/icons";
 import { PeriodicElementSymbol } from "./PeriodicElementSymbol";
 
 /**

@@ -8,6 +8,7 @@ import { ProductGridSkeleton } from "../../components";
 import { CategoryPageClient } from "./CategoryPageClient";
 import { bannerConfigFromCategory } from "@/lib/category-banner";
 import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -28,19 +29,11 @@ export async function generateMetadata({
   const category = result.data;
   const canonicalUrl = `${BASE_URL}/catalog/${slug}`;
 
-  return {
-    title: { absolute: `Скупка ${category.name} в Санкт-Петербурге по высоким ценам | Покупаем в любом объеме, оплата сразу | ${SITE_BRAND}` },
+  return pageMetadata({
+    title: `${category.name} — цены скупки в Санкт-Петербурге | ${SITE_BRAND}`,
     description: `Скупаем ${category.name} по высоким ценам в Санкт-Петербурге. Оценка по фото, скупаем в любом объеме, оплата сразу, честное взвешивание. Компания ${SITE_BRAND} в СПб.`,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: `Скупка ${category.name} в Санкт-Петербурге | ${SITE_BRAND}`,
-      description: `Скупаем ${category.name} по высоким ценам. Оплата сразу, оценка по фото.`,
-      type: "website",
-      url: canonicalUrl,
-    },
-  };
+    path: canonicalUrl,
+  });
 }
 
 // JSON-LD Schema.org BreadcrumbList
@@ -109,6 +102,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             id: category.id,
             name: category.name,
             slug: category.slug,
+            imageUrl: category.imageUrl,
             warningMessage: category.warningMessage,
             bannerText: category.bannerText,
             banner: bannerConfigFromCategory(category),

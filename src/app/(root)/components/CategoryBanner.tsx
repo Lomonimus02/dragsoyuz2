@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { AlertTriangle, AlignJustify, ArrowRight } from "lucide-react";
+import { AlertTriangle, BookOpen, ArrowRight } from "@/app/(root)/components/icons";
 import {
   type CategoryBannerConfig,
   type CategoryBannerAlign,
@@ -11,6 +11,7 @@ import {
   resolveCategoryBannerContent,
 } from "@/lib/category-banner";
 import {
+  INFO_PAGE_BUTTON_DEFAULT_COLOR,
   INFO_PAGE_BUTTON_DEFAULT_TEXT_COLOR,
   normalizeInfoPageButtonColor,
   resolveInfoButtonLabel,
@@ -26,6 +27,7 @@ export interface CategoryBannersProps {
   infoPageButtonLabel?: string | null;
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
+  categoryTitleInHeading?: boolean;
 }
 
 function getDecorLineColor(
@@ -147,7 +149,7 @@ function CategoryBannerBlock({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border p-5 md:p-6 ${styles.shell}`}
+      className={`rk-category-notice relative overflow-hidden rounded-2xl border p-5 md:p-6 ${styles.shell}`}
     >
       {hasImage && imageUrl && (
         <>
@@ -219,6 +221,7 @@ export function CategoryBanners({
   infoPageButtonLabel,
   infoPageButtonColor,
   infoPageButtonTextColor,
+  categoryTitleInHeading = false,
 }: CategoryBannersProps) {
   const rawContent = resolveCategoryBannerContent(
     warningMessage,
@@ -228,8 +231,14 @@ export function CategoryBanners({
   const display = resolveBannerDisplay(rawContent, banner.titleLines);
 
   const showInfoButton = infoPageEnabled;
+  // The category name already appears as the page heading. Only omit an exact
+  // repeated title with no additional text, image or link; keep all authored content.
+  const repeatsPageTitle = categoryTitleInHeading && display &&
+    [display.heading, display.body].filter(Boolean).length === 1 &&
+    (display.heading || display.body).trim().toLocaleLowerCase("ru") === categoryName.trim().toLocaleLowerCase("ru") &&
+    !banner.imageUrl && !banner.linkUrl;
 
-  if (!display && !showInfoButton) {
+  if ((!display || repeatsPageTitle) && !showInfoButton) {
     return null;
   }
 
@@ -241,17 +250,15 @@ export function CategoryBanners({
     normalizeInfoPageButtonColor(infoPageButtonTextColor) ??
     INFO_PAGE_BUTTON_DEFAULT_TEXT_COLOR;
   const infoButtonClassName =
-    "flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--primary-700)] py-3 text-center font-semibold text-white underline underline-offset-4 transition hover:brightness-90 hover:shadow-md";
+    "rk-category-guide-link flex w-full items-center gap-3 bg-[var(--primary-700)] font-semibold text-white transition hover:brightness-90";
   const infoButtonStyle: { backgroundColor?: string; color: string } = {
     color: resolvedButtonTextColor,
   };
-  if (resolvedButtonColor) {
-    infoButtonStyle.backgroundColor = resolvedButtonColor;
-  }
+  infoButtonStyle.backgroundColor = resolvedButtonColor ?? INFO_PAGE_BUTTON_DEFAULT_COLOR;
 
   return (
-    <div className="mb-6 space-y-2">
-      {display && (display.heading || display.body) && (
+    <div className="rk-category-notices">
+      {!repeatsPageTitle && display && (display.heading || display.body) && (
         <CategoryBannerBlock
           heading={display.heading}
           body={display.body}
@@ -269,8 +276,9 @@ export function CategoryBanners({
       {showInfoButton &&
         (isPreviewSlug ? (
           <span className={infoButtonClassName} style={infoButtonStyle}>
-            <AlignJustify className="h-5 w-5 shrink-0" aria-hidden />
-            {infoLabel}
+            <BookOpen className="rk-category-guide-icon" aria-hidden />
+            <span>{infoLabel}</span>
+            <ArrowRight className="rk-category-guide-arrow" aria-hidden />
           </span>
         ) : (
           <Link
@@ -278,8 +286,9 @@ export function CategoryBanners({
             className={infoButtonClassName}
             style={infoButtonStyle}
           >
-            <AlignJustify className="h-5 w-5 shrink-0" aria-hidden />
-            {infoLabel}
+            <BookOpen className="rk-category-guide-icon" aria-hidden />
+            <span>{infoLabel}</span>
+            <ArrowRight className="rk-category-guide-arrow" aria-hidden />
           </Link>
         ))}
     </div>

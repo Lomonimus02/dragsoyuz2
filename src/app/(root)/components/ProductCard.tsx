@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { CatalogImage as Image } from "./CatalogImage";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/app/(root)/components/icons";
 import type { ProductWithPrice, ModificationWithPrice, UnitType } from "@/app/actions";
 import { ImageModal } from "./ImageModal";
 import { SellModal } from "./SellModal";
@@ -121,7 +121,7 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
     return (
       <Link 
         href={cardUrl}
-        className="group block bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-xl transition-all duration-300 overflow-hidden"
+        className="rk-product-card group block bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-xl transition-all duration-300 overflow-hidden"
       >
         {/* Image - larger aspect ratio for showcase */}
         <div className="relative aspect-[3/2] md:aspect-[4/3] bg-[var(--gray-100)] overflow-hidden shadow-sm">
@@ -130,12 +130,12 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
               src={product.image}
               alt={categoryName || product.categoryName}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-contain"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 16vw"
             />
           ) : (
             <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-              <span className="text-gray-400 text-sm font-medium">Загрузка фото</span>
+              <span className="text-gray-500 text-sm font-medium">Фото пока нет</span>
             </div>
           )}
           
@@ -173,30 +173,31 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
         />
       )}
       
-      <div className="group block bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg transition-all duration-300 overflow-hidden">
+      <div className="rk-product-card group block bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg transition-all duration-300 overflow-hidden">
         {/* Image - клик открывает модалку */}
         <button
           type="button"
+          disabled={!product.image}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             if (product.image) setIsImageModalOpen(true);
           }}
-          className="w-full cursor-zoom-in"
-          aria-label={`Увеличить изображение ${product.name}`}
+          className="w-full cursor-zoom-in disabled:cursor-default"
+          aria-label={product.image ? `Увеличить изображение ${product.name}` : `Фото ${product.name} пока нет`}
         >
-          <div className="relative aspect-[3/2] md:aspect-square bg-[var(--gray-100)] overflow-hidden shadow-sm">
+          <div className="rk-product-media relative aspect-[3/2] md:aspect-square bg-[var(--gray-100)] overflow-hidden shadow-sm">
             {product.image ? (
               <Image
                 src={product.image}
                 alt={product.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                className="object-contain"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
             ) : (
               <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                <span className="text-gray-400 text-sm font-medium">Загрузка фото</span>
+                <span className="text-gray-500 text-sm font-medium">Фото пока нет</span>
               </div>
             )}
             {/* Category badge */}
@@ -207,17 +208,17 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
         </button>
 
       {/* Content */}
-      <div className="p-2 md:p-4">
+      <div className="rk-product-content p-2 md:p-4">
         {/* Name */}
         <Link href={productUrl}>
-          <h3 className="text-lg font-semibold text-[var(--gray-800)] group-hover:text-[var(--primary-600)] transition-colors line-clamp-2 min-h-[2.5rem]">
+          <h3 className="text-lg font-semibold text-[var(--gray-800)] group-hover:text-[var(--primary-600)] transition-colors min-h-[2.5rem]">
             {product.name}
           </h3>
         </Link>
 
         {/* Description */}
         {product.description && (
-          <p className="text-[15px] leading-snug text-[var(--gray-800)] font-medium mb-5 line-clamp-2">
+          <p className="text-[15px] leading-snug text-[var(--gray-800)] font-medium mb-5">
             {product.description}
           </p>
         )}
@@ -276,7 +277,7 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
           )}
         </div>
 
-        <div className="mt-3 space-y-2">
+        <div className="rk-product-actions mt-3 space-y-2">
           <CalculatorModal product={product} />
           <SellModal contactInfo={contactInfo} />
         </div>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ClipboardList, Minus, Plus, X } from "lucide-react";
+import { ClipboardList, Minus, Plus, X } from "@/app/(root)/components/icons";
 import type { ProductWithPrice, UnitType } from "@/app/actions";
 import {
   useCartStore,
@@ -430,7 +430,7 @@ export function CalculatorModal({
           }}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-[var(--accent-500)] text-[var(--accent-700)] bg-white hover:bg-[var(--accent-50)] rounded-lg font-semibold transition-colors cursor-pointer"
         >
-          <ClipboardList className="w-4 h-4" />
+          <ClipboardList className="w-5 h-5" />
           Добавить в опись
         </button>
       )}
@@ -447,7 +447,7 @@ export function CalculatorModal({
             onClick={() => close()}
           />
 
-          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl animate-[fadeIn_0.2s_ease-out] font-semibold">
+          <div className="rk-dialog relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl animate-[fadeIn_0.2s_ease-out] font-semibold">
             <button
               type="button"
               onClick={() => close()}
@@ -508,7 +508,7 @@ export function CalculatorModal({
                       }}
                       className={`px-3 py-2.5 rounded-lg font-bold border transition-colors ${
                         condition === "new"
-                          ? "bg-green-500 border-green-500 text-white"
+                          ? "bg-[var(--primary-600)] border-[var(--primary-600)] text-white"
                           : "bg-white border-[var(--gray-300)] text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
                       }`}
                     >
@@ -522,7 +522,7 @@ export function CalculatorModal({
                       }}
                       className={`px-3 py-2.5 rounded-lg font-bold border transition-colors ${
                         condition === "used"
-                          ? "bg-amber-500 border-amber-500 text-white"
+                          ? "bg-[var(--primary-600)] border-[var(--primary-600)] text-white"
                           : "bg-white border-[var(--gray-300)] text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
                       }`}
                     >
@@ -681,7 +681,7 @@ export function CalculatorModal({
                     type="button"
                     onClick={handleMinus}
                     disabled={!gatesReady}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg border border-[var(--gray-300)] hover:bg-[var(--gray-50)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-[var(--gray-300)] hover:bg-[var(--gray-50)] disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Уменьшить"
                   >
                     <Minus className="w-4 h-4" />
@@ -699,12 +699,13 @@ export function CalculatorModal({
                       setQuantityInput(raw);
                       setQuantityError(false);
                     }}
-                    className="flex-1 h-10 text-center font-bold rounded-lg border border-[var(--gray-300)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] disabled:bg-[var(--gray-100)] disabled:text-[var(--gray-400)] disabled:cursor-not-allowed"
+                    aria-label={gramMode ? "Количество, г" : "Количество"}
+                    className="min-w-0 flex-1 h-10 text-center font-bold rounded-lg border border-[var(--gray-300)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] disabled:bg-[var(--gray-100)] disabled:text-[var(--gray-400)] disabled:cursor-not-allowed"
                   />
                   <button
                     type="button"
                     onClick={handlePlus}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg border border-[var(--gray-300)] hover:bg-[var(--gray-50)]"
+                    className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-[var(--gray-300)] hover:bg-[var(--gray-50)]"
                     aria-label="Увеличить"
                   >
                     <Plus className="w-4 h-4" />

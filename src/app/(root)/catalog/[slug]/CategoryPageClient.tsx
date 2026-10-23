@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { ChevronRight, Package, ArrowLeft } from "lucide-react";
+import { ChevronRight, Package, ArrowLeft } from "@/app/(root)/components/icons";
 import { ProductCardCompact } from "../../components";
 import { CategoryBanners } from "../../components/CategoryBanner";
 import type { CategoryBannerConfig } from "@/lib/category-banner";
@@ -14,6 +15,7 @@ interface CategoryPageClientProps {
     id: string;
     name: string;
     slug: string;
+    imageUrl?: string | null;
     warningMessage?: string | null;
     bannerText?: string | null;
     banner: CategoryBannerConfig;
@@ -57,10 +59,10 @@ export function CategoryPageClient({
   }, [highlightSlug]);
 
   return (
-    <div className="min-h-screen bg-[var(--gray-50)]">
-      <div className="bg-[var(--primary-900)] text-white py-6 md:py-8">
-        <div className="container mx-auto px-4">
-          <nav className="flex items-center gap-2 text-sm text-white/60 mb-3">
+    <div className="rk-category-page min-h-screen bg-[var(--gray-50)]">
+      <section className="rk-category-hero">
+        <div className="container mx-auto">
+          <nav className="rk-category-breadcrumb" aria-label="Хлебные крошки">
             <Link href="/" className="hover:text-white whitespace-nowrap">
               Главная
             </Link>
@@ -69,22 +71,31 @@ export function CategoryPageClient({
               Каталог
             </Link>
             <ChevronRight className="w-4 h-4 shrink-0" />
-            <span className="text-white font-medium">{category.name}</span>
+            <span aria-current="page">{category.name}</span>
           </nav>
-          <h1 className="text-2xl md:text-3xl font-bold">{category.name}</h1>
-          <p className="text-white/70 mt-1">Товаров в разделе: {total}</p>
+          <div className="rk-category-hero-grid">
+            <div className="rk-category-hero-copy">
+              <h1>{category.name}</h1>
+              <p>Товаров в разделе: {total}</p>
+              <Link href="/catalog" className="rk-category-back">
+                <ArrowLeft className="w-4 h-4" /> Все категории
+              </Link>
+            </div>
+            <div className={`rk-category-hero-art${category.imageUrl ? " rk-category-hero-photo" : ""}`}>
+              <Image
+                src={category.imageUrl || "/images/radioklad-real-parts-mobile-v2.png"}
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 639px) 100vw, 50vw"
+                className="object-contain"
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 py-6">
-        <Link
-          href="/catalog"
-          className="inline-flex items-center gap-2 text-[var(--primary-600)] hover:text-[var(--primary-700)] mb-4 font-medium"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Все категории
-        </Link>
-
+      <div className="rk-category-list container mx-auto px-4 py-6">
         <CategoryBanners
           categoryName={category.name}
           categorySlug={category.slug}
@@ -95,8 +106,13 @@ export function CategoryPageClient({
           infoPageButtonLabel={category.infoPageButtonLabel}
           infoPageButtonColor={category.infoPageButtonColor}
           infoPageButtonTextColor={category.infoPageButtonTextColor}
+          categoryTitleInHeading
         />
 
+        <div className="rk-category-list-heading">
+          <h2>Цены приёма</h2>
+          <p>Выберите деталь, чтобы посмотреть описание или добавить её в опись.</p>
+        </div>
         {products.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-[var(--gray-300)] mx-auto mb-4" />
@@ -108,7 +124,7 @@ export function CategoryPageClient({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="rk-product-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
             {products.map((product) => {
               const isHighlighted =
                 highlightSlug === product.slug && isHighlightVisible;
@@ -116,7 +132,7 @@ export function CategoryPageClient({
                 <div
                   key={product.id}
                   ref={highlightSlug === product.slug ? highlightedRef : null}
-                  className={`transition-all duration-500 rounded-lg ${
+                  className={`rk-product-grid-item transition-all duration-500 rounded-lg ${
                     isHighlighted
                       ? "ring-4 ring-yellow-400 ring-offset-2 animate-pulse-highlight"
                       : ""

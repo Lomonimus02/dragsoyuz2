@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Scale, Banknote, TrendingUp, Shield, Clock } from "lucide-react";
+import { Scale, Banknote, TrendingUp, Shield, Clock } from "@/app/(root)/components/icons";
 
 interface BenefitCardProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -13,7 +13,7 @@ function BenefitCard({ icon: Icon, title, description }: BenefitCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="flex flex-col items-center text-center p-4 md:p-6 bg-white rounded-xl border border-[var(--gray-200)] hover:shadow-md transition-shadow">
+    <div className="rk-benefit flex flex-col items-center text-center p-4 md:p-6 bg-white rounded-xl border border-[var(--gray-200)] hover:shadow-md transition-shadow">
       <div className="w-14 h-14 rounded-full bg-[var(--accent-100)] text-[var(--accent-600)] flex items-center justify-center mb-3">
         <Icon className="w-7 h-7" />
       </div>
@@ -74,7 +74,7 @@ const benefits = [
 
 export function BenefitsSection() {
   return (
-    <section className="py-16 md:py-20 bg-[var(--gray-100)]">
+    <section className="rk-benefits py-16 md:py-20 bg-[var(--gray-100)]">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-bold text-[var(--gray-900)]">

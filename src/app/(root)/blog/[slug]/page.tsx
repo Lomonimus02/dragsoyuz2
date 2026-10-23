@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "@/app/(root)/components/icons";
 import { getPublishedArticleBySlug, type ArticleFaqItem } from "@/app/actions";
 import { articlePlainText, parseArticleBody } from "@/lib/article-body";
 import { ArticleBodyView } from "../../components/ArticleBodyView";
 import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -134,19 +135,12 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const description = articleMetaDescription(article);
   const canonical = `${BASE_URL}/blog/${article.slug}`;
 
-  return {
-    title,
+  return pageMetadata({
+    title: `${title} | ${SITE_BRAND}`,
     description,
-    alternates: {
-      canonical,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "article",
-      url: canonical,
-    },
-  };
+    path: canonical,
+    type: "article",
+  });
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {

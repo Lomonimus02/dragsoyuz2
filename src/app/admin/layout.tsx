@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 /**
  * Корневой layout для /admin
  * Чистый контейнер без сайдбара, чтобы страница логина не имела лишних элементов.

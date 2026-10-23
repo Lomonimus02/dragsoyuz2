@@ -4,7 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublishedArticles } from "@/app/actions";
 import { articlePlainText } from "@/lib/article-body";
-import { SITE_URL as BASE_URL } from "@/lib/site";
+import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 10;
@@ -32,14 +33,12 @@ export async function generateMetadata({ searchParams }: BlogPageProps): Promise
   const page = parsePage(pageRaw) ?? 1;
   const canonical = page <= 1 ? `${BASE_URL}/blog` : `${BASE_URL}/blog?page=${page}`;
 
-  return {
-    title: page > 1 ? `Полезная информация — страница ${page}` : "Полезная информация",
+  return pageMetadata({
+    title: `${page > 1 ? `Полезная информация — страница ${page}` : "Полезная информация"} | ${SITE_BRAND}`,
     description:
       "Полезные статьи о радиодеталях и сдаче компонентов с драгоценными металлами.",
-    alternates: {
-      canonical,
-    },
-  };
+    path: canonical,
+  });
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
@@ -52,7 +51,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <div className="min-h-screen bg-[var(--gray-50)]">
-      <div className="bg-[var(--primary-900)] py-8 text-white md:py-12">
+      <div className="rk-page-heading bg-[var(--primary-900)] py-8 text-white md:py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">Полезная информация</h1>
           <p className="mt-2 text-white/70">Статьи о радиодеталях и сдаче</p>

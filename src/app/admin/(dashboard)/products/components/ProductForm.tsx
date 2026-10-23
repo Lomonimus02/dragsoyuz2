@@ -1,5 +1,7 @@
 "use client";
 
+import { uploadPhoto } from "@/lib/upload-photo";
+
 import { useState, useTransition, useRef, useMemo, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -27,8 +29,10 @@ import {
   Layers,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import { CatalogImage as Image } from "@/app/(root)/components/CatalogImage";
 import { getMetalDisplaySymbol } from "@/lib/precious-metals";
+import { parseProductDescription, formatProductDescription } from "@/lib/product-description-fields";
+import { ProductDescriptionFields } from "./ProductDescriptionFields";
 import {
   roundRublesToHundred,
   shouldRoundPriceToHundred,
@@ -55,7 +59,6 @@ interface FormData {
   name: string;
   slug: string;
   description: string;
-  pageDescription: string;
   image: string;
   seoH1: string;
   seoDescription: string;
@@ -141,6 +144,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
   const [isUploading, setIsUploading] = useState(false);
   const [hasDescription, setHasDescription] = useState(!!(product?.description));
   const [hasPageDescription, setHasPageDescription] = useState(!!(product?.pageDescription));
+  const [pageDescriptionDraft, setPageDescriptionDraft] = useState(() => parseProductDescription(product?.pageDescription));
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isEditing = !!product;
@@ -159,7 +163,6 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
       name: product?.name || "",
       slug: product?.slug || "",
       description: product?.description || "",
-      pageDescription: product?.pageDescription || "",
       image: product?.image || "",
       seoH1: product?.seoH1 || "",
       seoDescription: product?.seoDescription || "",
@@ -389,15 +392,8 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
+      const url = await uploadPhoto(file);
+      const result = { success: true, url, error: "" };
 
       if (result.success) {
         setImageUrl(result.url);
@@ -417,13 +413,14 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
     } catch (error) {
       setNotification({
         type: "error",
-        message: "Ошибка при загрузке файла",
+        message: error instanceof Error ? error.message : "Ошибка при загрузке файла",
       });
       setImagePreview(imageUrl);
     } finally {
       setIsUploading(false);
       // Очищаем URL превью
       URL.revokeObjectURL(previewUrl);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -438,6 +435,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
   };
 
   const onSubmit = (data: FormData) => {
+    if (isUploading) return;
     setNotification(null);
     console.log("=== Form onSubmit data ===", data);
     console.log("=== isSingleType value ===", data.isSingleType, typeof data.isSingleType);
@@ -457,7 +455,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
           name: data.name,
           slug: data.slug,
           description: hasDescription ? data.description || null : null,
-          pageDescription: hasPageDescription ? data.pageDescription || null : null,
+          pageDescription: hasPageDescription ? formatProductDescription(pageDescriptionDraft) || null : null,
           image: data.image || null,
           seoH1: data.seoH1 || null,
           seoDescription: data.seoDescription || null,
@@ -500,7 +498,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
           name: data.name,
           slug: data.slug,
           description: hasDescription ? data.description || null : null,
-          pageDescription: hasPageDescription ? data.pageDescription || null : null,
+          pageDescription: hasPageDescription ? formatProductDescription(pageDescriptionDraft) || null : null,
           image: data.image || null,
           seoH1: data.seoH1 || null,
           seoDescription: data.seoDescription || null,
@@ -694,8 +692,8 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                     checked={hasPageDescription}
                     onChange={(e) => {
                       setHasPageDescription(e.target.checked);
-                      if (!e.target.checked) {
-                        setValue("pageDescription", "");
+                      if (e.target.checked && !formatProductDescription(pageDescriptionDraft).trim() && watchName.trim()) {
+                        setPageDescriptionDraft(previous => ({ ...previous, fields: { ...previous.fields, name: watchName.trim() } }));
                       }
                     }}
                     className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
@@ -705,39 +703,15 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                   </span>
                 </label>
                 {hasPageDescription && (
-                  <div className="mt-2">
-                    <textarea
-                      id="pageDescription"
-                      {...register("pageDescription")}
-                      rows={6}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-y min-h-[8rem]"
-                      placeholder="Подробное описание для страницы товара"
-                    />
-                    <p className="mt-1 text-xs text-slate-500">
-                      Отображается на индивидуальной странице товара в блоке «Описание»
-                    </p>
-                  </div>
+                  <ProductDescriptionFields draft={pageDescriptionDraft} onChange={setPageDescriptionDraft} productName={watchName} />
                 )}
               </div>
 
-              {/* SEO H1 */}
-              <div>
-                <label
-                  htmlFor="seoH1"
-                  className="block text-sm font-medium text-slate-700 mb-1"
-                >
-                  SEO H1 <span className="text-slate-400 font-normal">(заголовок на странице товара)</span>
-                </label>
-                <input
-                  id="seoH1"
-                  type="text"
-                  {...register("seoH1")}
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Например: Диоды 2Д504 (если пусто — используется название товара)"
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  Если заполнено — отображается как H1 вместо названия товара
-                </p>
+              <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600">
+                <input type="hidden" {...register("seoH1")} />
+                Заголовок и текст о скупке формируются автоматически из названия товара и его категории.
+                Условия по году выпуска добавляются для транзисторов, микросхем, разъёмов и диодов.
+                Характеристики конкретной детали можно указать в полях описания выше.
               </div>
 
               {/* SEO Description */}
@@ -753,7 +727,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                   rows={3}
                   {...register("seoDescription")}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                  placeholder="Если пусто — генерируется автоматически: «Сдать {H1 или название} по высоким ценам в Санкт-Петербурге...»"
+                  placeholder="Если пусто — описание для поиска формируется автоматически из названия товара"
                 />
                 <p className="mt-1 text-xs text-slate-500">
                   Если заполнено — используется как meta description вместо авто-шаблона
@@ -816,7 +790,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
                         onChange={handleFileSelect}
                         disabled={isUploading}
                         className="hidden"
@@ -834,7 +808,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                     )}
                   </div>
                   <p className="text-xs text-slate-500">
-                    JPG, PNG, WebP или GIF. Максимум 5MB.
+                      JPG, PNG, WebP, GIF без анимации или HEIC — до 30 МБ. Большие снимки подготовим автоматически.
                   </p>
                   {imageUrl && (
                     <p className="text-xs text-green-600 truncate">
@@ -1591,16 +1565,16 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
           {/* Image preview */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="text-sm font-medium text-slate-700 mb-4">
-              Превью изображения
+              Фото в карточке товара
             </h3>
-            <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden">
+            <div className="relative aspect-square bg-white rounded-lg border border-slate-200 overflow-hidden">
               {imagePreview ? (
                 <Image
                   src={imagePreview}
-                  alt="Preview"
-                  width={400}
-                  height={400}
-                  className="w-full h-full object-cover"
+                  alt="Предпросмотр фотографии товара"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  className="w-full h-full object-contain"
                   onError={() => setImagePreview("")}
                 />
               ) : (
@@ -1610,6 +1584,11 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                 </div>
               )}
             </div>
+            <p className="mt-3 text-sm text-slate-500">
+              После загрузки фото автоматически центрируется и приближается,
+              чтобы детали были крупнее. Пустые белые поля не уменьшают изображение.
+                Фотография дополняется белыми полями до квадрата, затем наносится водяной знак «РадиоКлад». Сохраняется только готовая версия.
+            </p>
           </div>
 
           {/* Actions */}
@@ -1617,7 +1596,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
             <div className="space-y-3">
               <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || isUploading}
                 className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPending ? (

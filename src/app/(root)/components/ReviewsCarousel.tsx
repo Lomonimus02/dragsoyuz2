@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Quote, Star } from "@/app/(root)/components/icons";
 
 export type ReviewDisplay = {
   id: string;
@@ -15,11 +15,11 @@ function ReviewCard({ review }: { review: ReviewDisplay }) {
       className="group relative h-full bg-white rounded-2xl border border-[var(--gray-200)] p-6 shadow-sm hover:shadow-lg hover:border-[var(--accent-400)] transition-all duration-300"
     >
       <div className="absolute top-5 right-5 opacity-20 group-hover:opacity-40 transition-opacity">
-        <Quote className="w-8 h-8 text-amber-500" />
+        <Quote className="w-8 h-8 text-[var(--accent-400)]" />
       </div>
 
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-amber-500/20">
+        <div className="w-11 h-11 rounded-full bg-[var(--primary-600)] flex items-center justify-center text-white font-bold text-lg shadow-none">
           {review.name.charAt(0).toUpperCase()}
         </div>
         <div>

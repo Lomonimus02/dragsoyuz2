@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Package } from "lucide-react";
+import { Package } from "@/app/(root)/components/icons";
 
 interface CategoryShowcaseCardProps {
   product: {

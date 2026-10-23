@@ -1,45 +1,12 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { existsSync } from "fs";
-import { cookies } from "next/headers";
+import { isAuthenticated } from "@/app/actions/auth";
+import { saveWatermarkedPhoto } from "@/lib/catalog-photo-storage";
+import { PhotoProcessingError } from "@/lib/catalog-photo-watermark";
 
 // Разрешённые типы файлов
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ADMIN_COOKIE_NAME = "admin_session";
-
-/**
- * Проверка авторизации админа
- */
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(ADMIN_COOKIE_NAME);
-  
-  if (!sessionCookie?.value) {
-    return false;
-  }
-
-  try {
-    const session = JSON.parse(
-      Buffer.from(sessionCookie.value, "base64").toString("utf-8")
-    );
-    return session.authenticated === true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Генерирует уникальное имя файла
- */
-function generateFileName(originalName: string): string {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 8);
-  const ext = path.extname(originalName).toLowerCase();
-  return `${timestamp}-${random}${ext}`;
-}
-
 export async function POST(request: Request) {
   try {
     // Проверяем авторизацию
@@ -53,7 +20,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json(
         { success: false, error: "Файл не предоставлен" },
         { status: 400 }
@@ -76,20 +43,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Создаём директорию uploads если её нет
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    // Генерируем уникальное имя и сохраняем файл
-    const fileName = generateFileName(file.name);
-    const filePath = path.join(uploadsDir, fileName);
-
-    // Конвертируем File в Buffer и записываем
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    const purpose = formData.get("purpose");
+    if (purpose !== null && purpose !== "catalog" && purpose !== "store") {
+      return NextResponse.json({ success: false, error: "Неизвестный раздел загрузки" }, { status: 400 });
+    }
+    const fileName = await saveWatermarkedPhoto(Buffer.from(bytes), uploadsDir, purpose === "store" ? "store" : "catalog");
 
     // Возвращаем публичный URL
     const publicUrl = `/uploads/${fileName}`;
@@ -100,6 +60,9 @@ export async function POST(request: Request) {
       fileName: fileName,
     });
   } catch (error) {
+    if (error instanceof PhotoProcessingError) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    }
     console.error("Ошибка загрузки файла:", error);
     return NextResponse.json(
       { success: false, error: "Ошибка при загрузке файла" },

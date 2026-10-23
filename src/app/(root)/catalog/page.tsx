@@ -1,22 +1,21 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
-import { Package, ChevronRight } from "lucide-react";
+import { CatalogImage as Image } from "../components/CatalogImage";
+import { Package, ChevronRight } from "@/app/(root)/components/icons";
 import { ProductGridSkeleton } from "../components";
 import { prisma } from "@/lib/prisma";
-import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { SITE_BRAND } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: { absolute: `Каталог скупаемых в Санкт-Петербурге радиодеталей с ценами и фото | ${SITE_BRAND}` },
+export const metadata: Metadata = pageMetadata({
+  title: `Каталог радиодеталей — цены скупки в СПб | ${SITE_BRAND}`,
   description:
     "Полный каталог радиодеталей с актуальными ценами скупки. Транзисторы, конденсаторы, микросхемы, реле и другие детали. Покупаем дорого, в любых объемах. Оплата сразу.",
-  alternates: {
-    canonical: `${BASE_URL}/catalog`,
-  },
-};
+  path: "/catalog",
+});
 
 // Categories List
 async function CategoriesList() {
@@ -54,7 +53,7 @@ async function CategoriesList() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-      {categories.map((category) => {
+      {categories.map((category, index) => {
         const showcaseImage = category.products[0]?.image ?? null;
         // Приоритет: собственная картинка категории > витринный товар > заглушка
         const displayImage = category.imageUrl || showcaseImage;
@@ -67,16 +66,16 @@ async function CategoriesList() {
           <Link
             key={category.id}
             href={`/catalog/${category.slug}`}
-            className="group flex items-center bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg hover:translate-x-1 transition-all duration-300 overflow-hidden"
+            className="rk-category-card group flex items-center bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg hover:translate-x-1 transition-all duration-300 overflow-hidden"
           >
-            {/* Квадратное фото слева */}
-            <div className="w-24 h-24 md:w-28 md:h-28 shrink-0 bg-[var(--gray-100)] overflow-hidden shadow-sm">
+            {/* Фото категории на правой части фона карточки */}
+            <div className="rk-category-image w-24 h-24 md:w-28 md:h-28 shrink-0 bg-[var(--gray-100)] overflow-hidden shadow-sm">
               {displayImage ? (
                 <Image
                   src={displayImage}
                   alt={category.name}
-                  width={112}
-                  height={112}
+                  fill
+                  sizes="(max-width: 1023px) 45vw, 25vw"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -87,10 +86,12 @@ async function CategoriesList() {
             </div>
 
             {/* Название категории */}
-            <div className="flex-1 min-w-0 px-4">
+            <div className="rk-category-copy flex-1 min-w-0 px-4">
+              <span className="rk-category-number">{String(index + 1).padStart(2, "0")}</span>
               <h3 className="font-semibold text-lg md:text-xl text-[var(--gray-900)] group-hover:text-[var(--primary-600)] transition-colors">
                 {category.name}
               </h3>
+              <p className="rk-category-count">Позиций в каталоге: {totalProducts}</p>
             </div>
 
             {/* Стрелка справа */}
@@ -106,9 +107,9 @@ async function CategoriesList() {
 
 export default async function CatalogPage() {
   return (
-    <div className="min-h-screen bg-[var(--gray-50)]">
+    <div className="rk-catalog min-h-screen bg-[var(--gray-50)]">
       {/* Page header */}
-      <div className="bg-[var(--primary-900)] text-white py-8 md:py-12">
+      <div className="rk-page-heading bg-[var(--primary-900)] text-white py-8 md:py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
             Каталог радиодеталей

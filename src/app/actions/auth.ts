@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
+import { ADMIN_COOKIE_NAME, COOKIE_MAX_AGE, createAdminSession, verifyAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 
 // ============================================================================
@@ -21,8 +22,6 @@ export type ChangePasswordResult =
 // КОНСТАНТЫ
 // ============================================================================
 
-const ADMIN_COOKIE_NAME = "admin_session";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 дней
 
 // ============================================================================
 // SERVER ACTIONS
@@ -59,18 +58,12 @@ export async function loginAdmin(password: string): Promise<LoginResult> {
       return { success: false, error: "Неверный пароль" };
     }
 
-    // Создаём простую сессию
-    const sessionToken = Buffer.from(
-      JSON.stringify({ 
-        authenticated: true, 
-        timestamp: Date.now() 
-      })
-    ).toString("base64");
+    const sessionToken = await createAdminSession();
 
     const cookieStore = await cookies();
     cookieStore.set(ADMIN_COOKIE_NAME, sessionToken, {
       httpOnly: true,
-      secure: false, // Для HTTP без HTTPS
+      secure: process.env.NEXT_PUBLIC_BASE_URL?.startsWith("https://") ?? false,
       sameSite: "lax",
       maxAge: COOKIE_MAX_AGE,
       path: "/",
@@ -149,18 +142,5 @@ export async function logoutAdmin(): Promise<void> {
  */
 export async function isAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(ADMIN_COOKIE_NAME);
-  
-  if (!sessionCookie?.value) {
-    return false;
-  }
-
-  try {
-    const session = JSON.parse(
-      Buffer.from(sessionCookie.value, "base64").toString("utf-8")
-    );
-    return session.authenticated === true;
-  } catch {
-    return false;
-  }
+  return verifyAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 }

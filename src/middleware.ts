@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const ADMIN_COOKIE_NAME = "admin_session";
-
-function isValidSession(sessionCookie: string | undefined): boolean {
-  if (!sessionCookie) return false;
-  try {
-    const session = JSON.parse(
-      Buffer.from(sessionCookie, "base64").toString("utf-8"),
-    );
-    return session.authenticated === true;
-  } catch {
-    return false;
-  }
-}
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from "@/lib/admin-session";
 
 function normalizePathname(pathname: string): string {
   let normalized = pathname.replace(/\/{2,}/g, "/");
@@ -23,7 +11,7 @@ function normalizePathname(pathname: string): string {
   return normalized;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const { pathname, hostname } = url;
 
@@ -46,7 +34,7 @@ export function middleware(request: NextRequest) {
   }
 
   const sessionCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
-  const isAuthenticated = isValidSession(sessionCookie);
+  const isAuthenticated = await verifyAdminSession(sessionCookie);
 
   if (pathname === "/admin/login") {
     if (isAuthenticated) {

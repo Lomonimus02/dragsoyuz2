@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Package,
@@ -13,7 +13,8 @@ import {
   AlertCircle,
   Printer,
   Calculator,
-} from "lucide-react";
+  WhatsAppIcon,
+} from "@/app/(root)/components/icons";
 import { useCartStore, type InventoryLine, type ItemCondition } from "@/store";
 import { useSiteContacts } from "../components/SiteContactsProvider";
 import { useYearPeriodDiscounts } from "../components/YearDiscountsProvider";
@@ -25,13 +26,11 @@ import {
   shouldShowCalculator,
 } from "@/lib/year-discount";
 import {
-  classifyPrintGroup,
-  groupRowsForPrint,
   shouldApplyYearDiscount,
-  shouldCountGoldBearingSum,
   shouldShowYearPicker,
 } from "@/lib/inventory-print-groups";
-import { SITE_BRAND } from "@/lib/site";
+import { SITE_BRAND, DEFAULT_SITE_VK_URL } from "@/lib/site";
+import { sortInventoryByCatalog, type InventoryCatalogCategory } from "@/lib/inventory-catalog-order";
 import {
   computeLineTotal,
   formatInventoryQuantity,
@@ -43,8 +42,9 @@ import {
 } from "@/lib/gram-quantity";
 import type { ProductWithPrice, ProductsResult } from "@/app/actions";
 import { AdminMetalReport } from "./AdminMetalReport";
-
-const DEFAULT_VK_URL = "https://vk.com/dragsoyuz";
+import { ManualInventoryForm } from "./ManualInventoryForm";
+import { useAdminInventoryStore } from "@/store/admin-inventory-store";
+import { formatManualQuantity, manualInventoryTotal, manualUnitLabel, type ManualInventoryLine } from "@/lib/manual-inventory";
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("ru-RU", {
@@ -93,7 +93,8 @@ function rowGramMode(product: ProductWithPrice | null): boolean {
   return product ? usesGramQuantity(product) : false;
 }
 
-function rowPriceSuffix(product: ProductWithPrice | null): string {
+function rowPriceSuffix(product: ProductWithPrice | null, manual?: ManualInventoryLine): string {
+  if (manual) return `/${manualUnitLabel(manual.unit)}`;
   if (!product) return "";
   return getInventoryPriceUnitSuffix(
     product.unitType,
@@ -107,6 +108,20 @@ interface InventoryRow {
   unitPrice: number;
   lineTotal: number;
   displayName: string;
+  manual?: ManualInventoryLine;
+}
+
+function rowQuantity(row: InventoryRow): string {
+  return row.manual ? formatManualQuantity(row.manual) : formatInventoryQuantity(row.line.quantity, rowGramMode(row.product));
+}
+
+function rowCondition(row: InventoryRow): string {
+  if (row.manual?.condition === "unspecified") return "—";
+  return getConditionLabel(row.line.condition, row.product?.isSingleType ?? false);
+}
+
+function rowPeriod(row: InventoryRow): string {
+  return row.manual ? row.manual.year || "—" : formatLinePeriod(row.line, row.product);
 }
 
 function InventoryQtyControl({
@@ -173,7 +188,7 @@ function InventoryQtyControl({
   );
 }
 
-export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
+export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolean; catalogCategories: InventoryCatalogCategory[] }) {
   const items = useCartStore((state) => state.items);
   const updateLineQuantity = useCartStore((state) => state.updateLineQuantity);
   const removeLine = useCartStore((state) => state.removeLine);
@@ -181,7 +196,20 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
   const hasHydrated = useCartStore((state) => state.hasHydrated);
   const discounts = useYearPeriodDiscounts();
   const siteContacts = useSiteContacts();
-  const vkUrl = siteContacts?.vkHref || DEFAULT_VK_URL;
+  const vkUrl = siteContacts?.vkHref || DEFAULT_SITE_VK_URL;
+  const whatsappUrl = siteContacts?.whatsappHref;
+
+  const manualLines = useAdminInventoryStore((state) => state.lines);
+  const manualHydrated = useAdminInventoryStore((state) => state.hasHydrated);
+  const removeManualLine = useAdminInventoryStore((state) => state.removeLine);
+  const updateManualQuantity = useAdminInventoryStore((state) => state.updateLineQuantity);
+  const clearManualLines = useAdminInventoryStore((state) => state.clear);
+  const [manualEditor, setManualEditor] = useState<ManualInventoryLine | "new" | null>(null);
+  const manualAddRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isAdmin) void useAdminInventoryStore.persist.rehydrate();
+  }, [isAdmin]);
 
   const [productsById, setProductsById] = useState<
     Record<string, ProductWithPrice>
@@ -253,8 +281,8 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
   }, [hasHydrated, items]);
 
   const rows: InventoryRow[] = useMemo(
-    () =>
-      items.map((line) => {
+    () => {
+      const catalogRows: InventoryRow[] = items.map((line) => {
         const product = productsById[line.productId] ?? null;
         const applyYearOverlay = product
           ? shouldApplyYearDiscount(product)
@@ -289,61 +317,36 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
           lineTotal: computeLineTotal(unitPrice, line.quantity, product),
           displayName,
         };
-      }),
-    [items, productsById, discounts],
+      });
+      const extraRows: InventoryRow[] = isAdmin ? manualLines.map((manual) => ({
+        line: { lineId: `manual:${manual.id}`, productId: "", modificationId: null,
+          quantity: manual.quantity, condition: manual.condition === "used" ? "used" : "new",
+          yearPeriodId: "until1990", customDiscountPercent: null },
+        product: null, unitPrice: manual.unitPrice, lineTotal: manualInventoryTotal(manual),
+        displayName: manual.name, manual,
+      })) : [];
+      return [...catalogRows, ...extraRows];
+    },
+    [items, productsById, discounts, isAdmin, manualLines],
   );
 
   const totalSum = rows.reduce((sum, row) => sum + row.lineTotal, 0);
   const totalPieces = rows.reduce(
     (sum, row) =>
-      rowGramMode(row.product) ? sum : sum + row.line.quantity,
+      (row.manual ? row.manual.unit !== "PIECE" : rowGramMode(row.product)) ? sum : sum + row.line.quantity,
     0,
   );
   const totalGrams = rows.reduce(
     (sum, row) =>
-      rowGramMode(row.product) ? sum + row.line.quantity : sum,
+      row.manual
+        ? sum + (row.manual.unit === "PIECE" ? 0 : row.manual.quantity * (row.manual.unit === "KG" ? 1000 : 1))
+        : rowGramMode(row.product) ? sum + row.line.quantity : sum,
     0,
   );
-  const displayGroups = useMemo(
-    () =>
-      groupRowsForPrint(
-        rows,
-        (row) =>
-          classifyPrintGroup({
-            categorySlug: row.product?.categorySlug,
-            categoryName: row.product?.categoryName,
-            productName: row.product?.name,
-            productSlug: row.product?.slug,
-          }),
-        (row) => ({
-          isSingleType: row.product?.isSingleType ?? false,
-          condition: row.line.condition,
-        }),
-      ),
-    [rows],
-  );
-
-  const displaySections = useMemo(() => {
-    let index = 0;
-    return displayGroups.map((group) => ({
-      ...group,
-      groupTotal: group.rows.reduce((sum, row) => sum + row.lineTotal, 0),
-      numberedRows: group.rows.map((row) => {
-        index += 1;
-        return { row, index };
-      }),
-    }));
-  }, [displayGroups]);
-
-  const goldBearingSum = useMemo(
-    () =>
-      rows.reduce((sum, row) => {
-        if (!row.product) return sum;
-        return shouldCountGoldBearingSum(row.product)
-          ? sum + row.lineTotal
-          : sum;
-      }, 0),
-    [rows],
+  const numberedRows = useMemo(
+    () => sortInventoryByCatalog(rows, catalogCategories, (row) => row.product)
+      .map((row, index) => ({ row, index: index + 1 })),
+    [rows, catalogCategories],
   );
 
   const printDateLabel = formatPrintDate(new Date());
@@ -354,11 +357,11 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
   };
 
   const handleSendToVK = () => {
-    if (rows.length === 0) return;
+    if (rows.length === 0 || !vkUrl) return;
     window.open(vkUrl, "_blank");
   };
 
-  if (!hasHydrated || initialLoading) {
+  if (!hasHydrated || initialLoading || (isAdmin && !manualHydrated)) {
     return (
       <div className="min-h-screen bg-[var(--gray-50)]">
         <div className="container mx-auto px-4 py-8">
@@ -373,7 +376,7 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
   return (
     <div className="min-h-screen bg-[var(--gray-50)] print:bg-white print:min-h-0">
       <div className="container mx-auto px-4 py-8 print:px-0 print:py-0 print:max-w-none">
-        <div className="flex items-center justify-between mb-8 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 print:hidden">
           <div>
             <Link
               href="/catalog"
@@ -389,17 +392,27 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
               Позиции для оценки на приёмке
             </p>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+          {isAdmin && <button ref={manualAddRef} type="button" onClick={() => setManualEditor("new")}
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary-700)] px-4 py-2.5 font-semibold text-white">
+            <Plus className="w-4 h-4" />Добавить вручную
+          </button>}
           {rows.length > 0 && (
             <button
               type="button"
-              onClick={clearCart}
+              onClick={() => { clearCart(); if (isAdmin) clearManualLines(); setManualEditor(null); setEditingLine(null); }}
+              aria-label="Очистить опись"
               className="flex items-center gap-2 px-4 py-2 text-[var(--gray-600)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               <span className="hidden sm:inline">Очистить</span>
             </button>
           )}
+          </div>
         </div>
+
+        {isAdmin && manualEditor && <ManualInventoryForm key={manualEditor === "new" ? "new" : manualEditor.id}
+          line={manualEditor === "new" ? null : manualEditor} onClose={() => { setManualEditor(null); manualAddRef.current?.focus({ preventScroll: true }); }} />}
 
         <div className="hidden print:block inventory-print-header mb-4">
           <div>
@@ -430,7 +443,7 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
               Опись пуста
             </h2>
             <p className="text-[var(--gray-600)] mb-6">
-              Добавьте детали из каталога кнопкой «Добавить в опись»
+              {isAdmin ? "Добавьте детали из каталога или создайте позицию вручную" : "Добавьте детали из каталога кнопкой «Добавить в опись»"}
             </p>
             <Link
               href="/catalog"
@@ -462,14 +475,7 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {displaySections.map((group) => (
-                      <Fragment key={group.id}>
-                        <tr>
-                          <td colSpan={8} className="group-title px-3 py-2">
-                            {group.label}
-                          </td>
-                        </tr>
-                        {group.numberedRows.map(({ row, index }) => (
+                    {numberedRows.map(({ row, index }) => (
                       <tr
                         key={row.line.lineId}
                         className="text-[var(--gray-800)]"
@@ -478,7 +484,7 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
                           {index}
                         </td>
                         <td className="col-name px-3 py-2 font-medium text-[var(--gray-900)]">
-                          {row.product ? (
+                          {row.manual ? <span>{row.displayName}<span className="block text-xs font-normal text-[var(--gray-500)] print:hidden">Ручная позиция</span></span> : row.product ? (
                             <Link
                               href={`/catalog/${row.product.categorySlug}/${row.product.slug}`}
                               className="hover:text-[var(--primary-600)] print:text-black print:no-underline"
@@ -492,38 +498,42 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
                           )}
                         </td>
                         <td className="px-2 py-2 text-center whitespace-nowrap">
-                          {formatLinePeriod(row.line, row.product)}
+                          {rowPeriod(row)}
                         </td>
                         <td className="px-2 py-2 text-center whitespace-nowrap">
-                          {getConditionLabel(
-                            row.line.condition,
-                            row.product?.isSingleType ?? false,
-                          )}
+                          {rowCondition(row)}
                         </td>
                         <td className="px-2 py-2 text-center">
-                          <InventoryQtyControl
+                          {row.manual ? row.manual.unit === "PIECE" ? <InventoryQtyControl
+                            quantity={row.manual.quantity}
+                            gramMode={false}
+                            onQuantityChange={(quantity) => {
+                              updateManualQuantity(row.manual!.id, quantity);
+                              if (quantity <= 0 && manualEditor !== "new" && manualEditor?.id === row.manual!.id) setManualEditor(null);
+                            }}
+                          /> : <span className="tabular-nums">{rowQuantity(row)}</span> : <InventoryQtyControl
                             quantity={row.line.quantity}
                             gramMode={rowGramMode(row.product)}
                             onQuantityChange={(quantity) =>
                               updateLineQuantity(row.line.lineId, quantity)
                             }
-                          />
+                          />}
                           <span className="hidden print:inline tabular-nums">
-                            {formatInventoryQuantity(
-                              row.line.quantity,
-                              rowGramMode(row.product),
-                            )}
+                            {rowQuantity(row)}
                           </span>
                         </td>
                         <td className="px-2 py-2 text-right whitespace-nowrap tabular-nums">
                           {formatPrice(row.unitPrice)}
-                          {rowPriceSuffix(row.product)}
+                          {rowPriceSuffix(row.product, row.manual)}
                         </td>
                         <td className="px-2 py-2 text-right font-semibold whitespace-nowrap tabular-nums">
                           {formatPrice(row.lineTotal)}
                         </td>
                         <td className="px-2 py-2 print:hidden">
                           <div className="flex items-center justify-end gap-0.5">
+                            {isAdmin && row.manual ? <button type="button" onClick={() => setManualEditor(row.manual!)}
+                              className="w-8 h-8 flex items-center justify-center rounded text-[var(--primary-600)] hover:bg-[var(--primary-50)]"
+                              title="Изменить ручную позицию" aria-label={`Изменить ${row.displayName}`}><Pencil className="w-4 h-4" /></button> : null}
                             {row.product && shouldShowCalculator(row.product) ? (
                               <button
                                 type="button"
@@ -537,45 +547,22 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
                             ) : null}
                             <button
                               type="button"
-                              onClick={() => removeLine(row.line.lineId)}
+                              onClick={() => {
+                                if (row.manual) { removeManualLine(row.manual.id); if (manualEditor !== "new" && manualEditor?.id === row.manual.id) setManualEditor(null); }
+                                else removeLine(row.line.lineId);
+                              }}
                               className="w-8 h-8 flex items-center justify-center text-[var(--gray-400)] hover:text-red-500 hover:bg-red-50 rounded"
                               title="Удалить строку"
+                              aria-label={`Удалить ${row.displayName}`}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
                       </tr>
-                        ))}
-                      </Fragment>
                     ))}
                   </tbody>
-                  <tfoot>
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-3 py-3 text-right font-medium"
-                      >
-                        Итого золотосодержащие
-                      </td>
-                      <td className="px-3 py-3 text-right font-semibold tabular-nums">
-                        {formatPrice(goldBearingSum)}
-                      </td>
-                      <td className="print:hidden" />
-                    </tr>
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-3 py-3 text-right font-medium"
-                      >
-                        Итого
-                      </td>
-                      <td className="px-3 py-3 text-right font-bold text-lg tabular-nums">
-                        {formatPrice(totalSum)}
-                      </td>
-                      <td className="print:hidden" />
-                    </tr>
-                  </tfoot>
+
                 </table>
               </div>
 
@@ -593,56 +580,30 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {displaySections.map((group) => (
-                      <Fragment key={group.id}>
-                        <tr>
-                          <td colSpan={7} className="group-title">
-                            {group.label}
-                          </td>
-                        </tr>
-                        {group.numberedRows.map(({ row, index }) => (
+                    {numberedRows.map(({ row, index }) => (
                           <tr key={row.line.lineId}>
                             <td className="col-num tabular-nums">{index}</td>
                             <td className="col-name">{row.displayName}</td>
                             <td className="col-year">
-                              {formatLinePeriod(row.line, row.product)}
+                              {rowPeriod(row)}
                             </td>
                             <td className="col-cond">
-                              {getConditionLabel(
-                                row.line.condition,
-                                row.product?.isSingleType ?? false,
-                              )}
+                              {rowCondition(row)}
                             </td>
                             <td className="col-qty tabular-nums">
-                              {formatInventoryQuantity(
-                                row.line.quantity,
-                                rowGramMode(row.product),
-                              )}
+                              {rowQuantity(row)}
                             </td>
                             <td className="col-price tabular-nums">
                               {formatPrice(row.unitPrice)}
-                              {rowPriceSuffix(row.product)}
+                              {rowPriceSuffix(row.product, row.manual)}
                             </td>
                             <td className="col-sum tabular-nums">
                               {formatPrice(row.lineTotal)}
                             </td>
                           </tr>
                         ))}
-                        <tr className="group-total">
-                          <td colSpan={6} className="text-right">
-                            Итого по группе
-                          </td>
-                          <td className="col-sum tabular-nums">
-                            {formatPrice(group.groupTotal)}
-                          </td>
-                        </tr>
-                      </Fragment>
-                    ))}
                   </tbody>
                   <tfoot>
-                    <tr className="gold-bearing-spacer">
-                      <td colSpan={7}>&nbsp;</td>
-                    </tr>
                     <tr className="grand-total">
                       <td colSpan={6} className="text-right">
                         Итого
@@ -668,7 +629,10 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
               ) : null}
 
               {isAdmin && showMetalReport ? (
-                <AdminMetalReport lines={items} productsById={productsById} />
+                <div>
+                  {manualLines.length > 0 && <p className="mt-4 text-sm text-[var(--gray-600)] print:hidden">Ручные позиции включены в сумму описи. Содержание металлов рассчитывается только для позиций из каталога.</p>}
+                  <AdminMetalReport lines={items} productsById={productsById} />
+                </div>
               ) : null}
             </div>
 
@@ -693,22 +657,14 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
                     <div className="flex justify-between text-[var(--gray-600)]">
                       <span>Всего, г.:</span>
                       <span>
-                        {formatInventoryQuantity(totalGrams, true)}
+                        {totalGrams.toLocaleString("ru-RU", { maximumFractionDigits: 3 })} г.
                       </span>
                     </div>
                   ) : null}
                   <div className="pt-3 border-t border-[var(--gray-200)] space-y-2">
                     <div className="flex justify-between items-end">
-                      <span className="text-[var(--gray-700)] font-medium">
-                        Итого золотосодержащие:
-                      </span>
-                      <span className="text-lg font-semibold text-[var(--gray-900)] tabular-nums">
-                        {formatPrice(goldBearingSum)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-end">
                       <span className="text-[var(--gray-900)] font-medium">
-                        Сумма описи:
+                        Общая сумма:
                       </span>
                       <span className="text-2xl font-bold text-[var(--accent-600)] tabular-nums">
                         {formatPrice(totalSum)}
@@ -727,14 +683,22 @@ export function CartPageClient({ isAdmin }: { isAdmin: boolean }) {
                     Печать / сохранить
                   </button>
 
-                  <button
+                  {whatsappUrl && (
+                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#128c7e] hover:bg-[#0f7669] text-white font-semibold rounded-lg transition-colors">
+                      <WhatsAppIcon className="w-5 h-5" />
+                      Написать в WhatsApp
+                    </a>
+                  )}
+
+                  {vkUrl && (<button
                     type="button"
                     onClick={handleSendToVK}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[var(--primary-600)] hover:bg-[var(--primary-700)] text-white font-semibold rounded-lg transition-colors"
                   >
                     <Send className="w-5 h-5" />
                     Написать в VK
-                  </button>
+                  </button>)}
 
                   <Link
                     href="/contacts"

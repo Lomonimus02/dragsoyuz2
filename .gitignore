@@ -40,6 +40,16 @@ yarn-error.log*
 # Пример файла можно коммитить
 !.env.example
 
+# Local reports, design drafts and runtime uploads
+/outputs/
+/public/brand-concepts/
+/public/uploads/*
+!/public/uploads/.gitkeep
+/public/images/radioklad-hero.png
+/public/images/radioklad-hero-mobile.png
+/public/images/radioklad-real-parts-desktop.png
+/public/images/radioklad-real-parts-mobile.png
+
 # vercel
 .vercel
 

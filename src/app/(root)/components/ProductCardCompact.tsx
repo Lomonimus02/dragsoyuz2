@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { CatalogImage as Image } from "./CatalogImage";
 import Link from "next/link";
-import { ZoomIn } from "lucide-react";
+import { ZoomIn } from "@/app/(root)/components/icons";
 import type { ProductWithPrice, ModificationWithPrice, UnitType } from "@/app/actions";
 import { ImageModal } from "./ImageModal";
 import { SellModal } from "./SellModal";
@@ -55,40 +55,39 @@ function ModificationsTableCompact({
   const showBothPrices = !isSingleType && isNewAvailable && isUsedAvailable;
 
   return (
-    <div className="rounded-lg border border-[var(--gray-200)] overflow-hidden">
+    <div className="rk-modifications" role="table" aria-label={`Цены по ${modLabel.toLowerCase()}`}>
       {/* Заголовок */}
-      <div className={`flex items-center bg-[var(--gray-100)] text-[11px] font-bold uppercase tracking-wide text-[var(--gray-900)] border-b border-[var(--gray-200)]`}>
-        <span className="flex-1 px-2 py-1.5 min-w-0 whitespace-nowrap overflow-hidden">{modLabel}</span>
+      <div className="rk-modification-row rk-modification-head" role="row">
+        <span role="columnheader">{modLabel}</span>
         {showBothPrices ? (
           <>
-            <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-200)] w-[30%] shrink-0">Новые</span>
-            <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-200)] w-[30%] shrink-0">Б/У</span>
+            <span role="columnheader">Новые</span>
+            <span role="columnheader">Б/У</span>
           </>
         ) : (
-          <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-200)] w-[55%] shrink-0">Цена</span>
+          <span role="columnheader">Цена</span>
         )}
       </div>
       {/* Строки */}
-      {modifications.map((mod, idx) => {
+      {modifications.map((mod) => {
         const singlePrice = isSingleType || isNewAvailable ? mod.priceNew : mod.priceUsed;
-        const isLast = idx === modifications.length - 1;
         return (
-          <div key={mod.id} className={`flex items-center ${!isLast ? 'border-b border-[var(--gray-200)]' : ''}`}>
-            <span className="flex-1 px-2 py-1.5 text-xs font-bold text-[var(--gray-900)] min-w-0 break-words tabular-nums">
+          <div key={mod.id} className="rk-modification-row" role="row">
+            <span className="rk-modification-name" role="cell">
               {mod.name}
             </span>
             {showBothPrices ? (
               <>
-                <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0 tabular-nums">
-                  {formatPrice(mod.priceNew)}{suffix}
+                <span className="rk-modification-price" role="cell">
+                  <strong>{formatPrice(mod.priceNew).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
                 </span>
-                <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0 tabular-nums">
-                  {formatPrice(mod.priceUsed)}{suffix}
+                <span className="rk-modification-price" role="cell">
+                  <strong>{formatPrice(mod.priceUsed).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
                 </span>
               </>
             ) : (
-              <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap text-xs w-[55%] shrink-0 tabular-nums">
-                {formatPrice(singlePrice)}{suffix}
+              <span className="rk-modification-price" role="cell">
+                <strong>{formatPrice(singlePrice).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
               </span>
             )}
           </div>
@@ -119,13 +118,14 @@ export function ProductCardCompact({ product, categorySlug, contactInfo }: Produ
         />
       )}
       
-      <div className="group bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg transition-all duration-300 overflow-hidden">
+      <div className="rk-product-card group bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg transition-all duration-300 overflow-hidden">
         {/* Image - клик открывает модалку */}
         <button
           type="button"
+          disabled={!product.image}
           onClick={() => product.image && setIsImageModalOpen(true)}
-          className="relative w-full aspect-[3/2] md:aspect-square bg-[var(--gray-100)] overflow-hidden cursor-zoom-in shadow-sm"
-          aria-label={`Увеличить изображение ${product.name}`}
+          className="rk-product-media relative w-full aspect-[3/2] md:aspect-square bg-[var(--gray-100)] overflow-hidden cursor-zoom-in disabled:cursor-default shadow-sm"
+          aria-label={product.image ? `Увеличить изображение ${product.name}` : `Фото ${product.name} пока нет`}
         >
           {product.image ? (
             <>
@@ -133,8 +133,8 @@ export function ProductCardCompact({ product, categorySlug, contactInfo }: Produ
                 src={product.image}
                 alt={product.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
+                className="object-contain"
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
               />
               {/* Иконка зума */}
               <div className="absolute bottom-2 right-2 p-1.5 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -143,23 +143,23 @@ export function ProductCardCompact({ product, categorySlug, contactInfo }: Produ
             </>
           ) : (
             <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-              <span className="text-gray-400 text-sm font-medium">Загрузка фото</span>
+              <span className="text-gray-500 text-sm font-medium">Фото пока нет</span>
             </div>
           )}
         </button>
 
         {/* Content */}
-        <div className="p-2 md:p-4">
+        <div className="rk-product-content p-2 md:p-4">
           {/* Name - клик ведет на страницу товара */}
           <Link href={productUrl}>
-            <h3 className="text-base font-medium text-[var(--gray-900)] hover:text-[var(--primary-600)] transition-colors line-clamp-2 min-h-[2.5rem] cursor-pointer">
+            <h3 className="text-base font-medium text-[var(--gray-900)] hover:text-[var(--primary-600)] transition-colors cursor-pointer">
               {product.name}
             </h3>
           </Link>
 
           {/* Description */}
           {product.description && (
-            <p className="text-[15px] leading-snug text-[var(--gray-800)] font-medium mb-5 line-clamp-2">
+            <p className="rk-product-description text-[15px] leading-snug text-[var(--gray-800)] font-medium mb-5">
               {product.description}
             </p>
           )}
@@ -187,7 +187,7 @@ export function ProductCardCompact({ product, categorySlug, contactInfo }: Produ
             /* Обычный товар */
             <div className="space-y-1">
               {hasNewPrice && (
-                <div className="flex items-center justify-between px-2 py-1 bg-[var(--gray-100)] border border-[var(--gray-900)] rounded-md">
+                <div className="rk-price-row flex items-center justify-between">
                   <span className="text-sm font-medium text-[var(--gray-900)]">
                     {product.isSingleType ? 'Цена' : 'Новые'}
                   </span>
@@ -197,7 +197,7 @@ export function ProductCardCompact({ product, categorySlug, contactInfo }: Produ
                 </div>
               )}
               {hasUsedPrice && !product.isSingleType && (
-                <div className="flex items-center justify-between px-2 py-1 bg-[var(--gray-100)] border border-[var(--gray-900)] rounded-md">
+                <div className="rk-price-row flex items-center justify-between">
                   <span className="text-sm font-medium text-[var(--gray-900)]">Б/У</span>
                   <span className="text-sm font-bold text-[var(--gray-900)]">
                     {formatPrice(product.priceUsed!)}{getPriceUnitSuffix(product.unitType)}
@@ -213,7 +213,7 @@ export function ProductCardCompact({ product, categorySlug, contactInfo }: Produ
           )}
         </div>
 
-        <div className="mt-3 space-y-2">
+        <div className="rk-product-actions mt-3 space-y-2">
           <CalculatorModal product={product} />
           <SellModal contactInfo={contactInfo} />
         </div>

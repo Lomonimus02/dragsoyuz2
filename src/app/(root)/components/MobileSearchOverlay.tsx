@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Search, Loader2, Package } from "lucide-react";
+import { ArrowLeft, Search, Loader2, Package } from "@/app/(root)/components/icons";
 import { findBestMatchProduct, getProducts, ProductWithPrice } from "@/app/actions";
 
 interface MobileSearchOverlayProps {
@@ -133,7 +133,8 @@ export function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOverlayProp
           <div className="relative">
             <input
               ref={inputRef}
-              type="text"
+              type="search"
+              aria-label="Поиск по каталогу"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Поиск по маркировке..."
@@ -141,6 +142,7 @@ export function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOverlayProp
             />
             <button
               type="submit"
+              aria-label="Найти радиодеталь"
               disabled={isSearching || !searchQuery.trim()}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-[var(--gray-200)] rounded-lg disabled:opacity-50 text-[var(--gray-600)] transition-colors"
             >

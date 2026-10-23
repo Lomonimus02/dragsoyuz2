@@ -1,5 +1,7 @@
 "use server";
 
+import { isAuthenticated } from "./auth";
+
 import { prisma } from "@/lib/prisma";
 import { calculateProductPrices, calculateModificationPrices } from "@/lib/price-calculator";
 import { applyHundredPrice } from "@/lib/hundred-price";
@@ -1198,6 +1200,7 @@ export async function getProductBySlug(slug: string): Promise<ProductResult> {
 export async function createProduct(
   input: CreateProductInput
 ): Promise<ProductResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     console.log("=== createProduct input ===", JSON.stringify(input, null, 2));
     // Валидация обязательных полей
@@ -1354,6 +1357,7 @@ export async function createProduct(
 export async function updateProduct(
   input: UpdateProductInput
 ): Promise<ProductResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     console.log("=== updateProduct input ===", JSON.stringify(input, null, 2));
     if (!input.id) {
@@ -1597,6 +1601,7 @@ export async function updateProduct(
  * Удалить товар
  */
 export async function deleteProduct(id: string): Promise<DeleteResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     if (!id) {
       return { success: false, error: "ID товара обязателен" };

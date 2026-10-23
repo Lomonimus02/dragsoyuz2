@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { loginAdmin } from "@/app/actions";
-import { Lock, Loader2, AlertCircle, Zap } from "lucide-react";
-import { SITE_BRAND } from "@/lib/site";
+import { Lock, Loader2, AlertCircle } from "lucide-react";
+import { SITE_BRAND, siteHostLabel } from "@/lib/site";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -38,11 +39,10 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-900 rounded-xl mb-4 shadow-lg">
-            <Zap className="w-10 h-10 text-amber-500" />
-          </div>
+          <Image src="/icon.svg" alt="" width={64} height={64} className="mx-auto rounded-xl mb-4 shadow-lg" priority />
           <h1 className="text-2xl font-bold text-slate-800">{SITE_BRAND}</h1>
           <p className="text-slate-500 mt-1">Панель администратора</p>
+          <p className="text-sm text-emerald-800 mt-2">{siteHostLabel()}</p>
         </div>
 
         {/* Login Form */}

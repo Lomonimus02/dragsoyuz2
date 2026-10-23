@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { X, Phone, Send, MessageCircle } from "lucide-react";
+import { X, Phone, TelegramIcon, WhatsAppIcon } from "@/app/(root)/components/icons";
+import { VkIcon } from "./BrandIcons";
 import { useSiteContacts } from "./SiteContactsProvider";
+import { DEFAULT_SITE_VK_URL } from "@/lib/site";
 
 export interface SellModalContactInfo {
   phoneNumber: string;
   phoneHref: string;
   telegramHref: string;
   vkHref: string;
+  whatsappHref?: string;
 }
 
 interface SellModalProps {
@@ -19,7 +22,7 @@ const DEFAULT_CONTACTS: SellModalContactInfo = {
   phoneNumber: "+7 (812) 983-49-76",
   phoneHref: "tel:+78129834976",
   telegramHref: "https://t.me/dragsoyuz",
-  vkHref: "https://vk.com/dragsoyuz",
+  vkHref: DEFAULT_SITE_VK_URL,
 };
 
 export function SellModal({ contactInfo }: SellModalProps) {
@@ -68,7 +71,7 @@ export function SellModal({ contactInfo }: SellModalProps) {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
           {/* Dialog */}
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+          <div className="rk-dialog relative w-full max-w-md bg-white rounded-2xl shadow-2xl animate-[fadeIn_0.2s_ease-out]">
             {/* Close button */}
             <button
               type="button"
@@ -105,20 +108,31 @@ export function SellModal({ contactInfo }: SellModalProps) {
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 px-4 py-3 bg-[#229ED9] hover:bg-[#1e8ec4] text-white rounded-xl font-semibold transition-colors"
                 >
-                  <Send className="w-5 h-5 shrink-0" />
+                  <TelegramIcon className="w-5 h-5 shrink-0" />
                   <span>Написать в Telegram</span>
                 </a>
 
+                {/* WhatsApp */}
+                {contacts.whatsappHref && (
+                  <a href={contacts.whatsappHref} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-4 py-3 bg-[#128c7e] hover:bg-[#0f7669] text-white rounded-xl font-semibold transition-colors">
+                    <WhatsAppIcon className="w-5 h-5 shrink-0" />
+                    <span>Написать в WhatsApp</span>
+                  </a>
+                )}
+
                 {/* ВКонтакте */}
+                {contacts.vkHref && (
                 <a
                   href={contacts.vkHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 px-4 py-3 bg-[#0077FF] hover:bg-[#0066dd] text-white rounded-xl font-semibold transition-colors"
                 >
-                  <MessageCircle className="w-5 h-5 shrink-0" />
+                  <VkIcon className="w-5 h-5 shrink-0" />
                   <span>Написать во ВКонтакте</span>
                 </a>
+                )}
               </div>
             </div>
           </div>

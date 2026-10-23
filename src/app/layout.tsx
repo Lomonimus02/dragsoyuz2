@@ -3,7 +3,9 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import Script from "next/script";
 import "./globals.css";
-import { SITE_BRAND, SITE_THEME, SITE_URL, YANDEX_METRIKA_ID } from "@/lib/site";
+import "./radioklad-fonts.css";
+import "./radioklad.css";
+import { IS_LOCAL_PREVIEW, SITE_BRAND, SITE_THEME, SITE_URL, YANDEX_METRIKA_ID } from "@/lib/site";
 
 const BASE_URL = SITE_URL;
 
@@ -12,12 +14,13 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#343a40",
+  themeColor: "#f5f3ed",
   colorScheme: "dark light",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
+  applicationName: SITE_BRAND,
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
@@ -82,16 +85,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" data-theme={SITE_THEME} style={{ backgroundColor: '#343a40' }}>
+    <html lang="ru" data-theme={SITE_THEME} style={{ backgroundColor: '#f5f3ed' }}>
       <head>
         {/* Explicit theme-color for Telegram/iOS in-app browsers */}
-        <meta name="theme-color" content="#343a40" />
-        <meta name="msapplication-navbutton-color" content="#343a40" />
+        <meta name="theme-color" content="#f5f3ed" />
+        <meta name="msapplication-navbutton-color" content="#f5f3ed" />
       </head>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
         {children}
+        {!IS_LOCAL_PREVIEW && YANDEX_METRIKA_ID && <>
         <Script
           id="yandex-metrika"
           strategy="afterInteractive"
@@ -122,6 +126,7 @@ export default function RootLayout({
             <img src={`https://mc.yandex.ru/watch/${YANDEX_METRIKA_ID}`} style={{ position: 'absolute', left: '-9999px' }} alt="" />
           </div>
         </noscript>
+        </>}
       </body>
     </html>
   );

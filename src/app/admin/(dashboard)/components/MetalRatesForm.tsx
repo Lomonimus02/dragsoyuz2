@@ -146,6 +146,7 @@ export function MetalRatesForm({ initialRates }: MetalRatesFormProps) {
       <div className="text-sm text-slate-500">
         Последнее обновление:{" "}
         {new Date(initialRates.updatedAt).toLocaleString("ru-RU", {
+          timeZone: "Europe/Moscow",
           dateStyle: "long",
           timeStyle: "short",
         })}

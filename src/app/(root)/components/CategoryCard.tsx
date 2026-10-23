@@ -8,7 +8,7 @@ import {
   HardDrive,
   Settings,
   Package,
-} from "lucide-react";
+} from "@/app/(root)/components/icons";
 import type { CategoryData } from "@/app/actions";
 
 interface CategoryCardProps {

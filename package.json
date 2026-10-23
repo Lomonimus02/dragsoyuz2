@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed:local": "tsx scripts/seed-local-preview.ts",
     "db:seed-seo-h1": "npx tsx scripts/seed-seo-h1.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset"
@@ -19,18 +20,21 @@
     "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "bcryptjs": "^3.0.3",
     "fuse.js": "^7.1.0",
     "geist": "^1.7.2",
+    "heic-to": "1.6.6",
     "lucide-react": "^0.563.0",
-    "next": "16.1.6",
+    "next": "16.4.2",
     "pg": "^8.18.0",
     "prisma": "^7.3.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.1",
+    "sharp": "0.35.5",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -42,7 +46,7 @@
     "@types/react-dom": "^19",
     "dotenv": "^17.2.3",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"

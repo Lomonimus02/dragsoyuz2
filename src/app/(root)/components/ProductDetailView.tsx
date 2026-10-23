@@ -1,11 +1,13 @@
-import Image from "next/image";
+import { CatalogImage as Image } from "./CatalogImage";
 import Link from "next/link";
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft, Info } from "@/app/(root)/components/icons";
 import type { ProductWithPrice, ModificationWithPrice, UnitType } from "@/app/actions";
 import { SellModal } from "./SellModal";
 import type { SellModalContactInfo } from "./SellModal";
 import { CalculatorModal } from "./CalculatorModal";
 import { ProductMetalContent } from "./ProductMetalContent";
+import { productPurchaseCopy } from "@/lib/product-purchase-copy";
+import { SITE_BRAND } from "@/lib/site";
 
 function getPriceUnitSuffix(unitType: UnitType): string {
   switch (unitType) {
@@ -184,6 +186,7 @@ interface ProductDetailViewProps {
   categoryName: string;
   categorySlug: string;
   sellContactInfo?: SellModalContactInfo;
+  purchaseCopy?: ReturnType<typeof productPurchaseCopy>;
 }
 
 export function ProductDetailView({
@@ -191,6 +194,7 @@ export function ProductDetailView({
   categoryName,
   categorySlug,
   sellContactInfo,
+  purchaseCopy: suppliedCopy,
 }: ProductDetailViewProps) {
   const hasMetalContent =
     product.showDisplayContent &&
@@ -201,6 +205,7 @@ export function ProductDetailView({
       product.displayContentTantalum > 0);
 
   const hasPageDescription = !!product.pageDescription;
+  const purchaseCopy = suppliedCopy ?? productPurchaseCopy(product, SITE_BRAND);
 
   const howToSellSteps = [
     "Соберите все детали данного типа",
@@ -210,7 +215,7 @@ export function ProductDetailView({
   ];
 
   return (
-    <div className="space-y-6 lg:space-y-8">
+    <div className="rk-product-detail space-y-6 lg:space-y-8">
       <Link
         href={`/catalog/${categorySlug}`}
         className="inline-flex items-center gap-2 text-sm text-[var(--primary-600)] hover:text-[var(--primary-700)] font-medium transition-colors"
@@ -222,7 +227,7 @@ export function ProductDetailView({
       {/* Hero: фото + ключевая информация */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-6 lg:gap-10 items-start">
         <div className="lg:sticky lg:top-24">
-          <div className="relative aspect-square bg-white rounded-2xl border border-[var(--gray-200)] shadow-sm overflow-hidden">
+          <div className="rk-detail-image relative aspect-square bg-white rounded-2xl border border-[var(--gray-200)] shadow-sm overflow-hidden">
             {product.image ? (
               <Image
                 src={product.image}
@@ -235,7 +240,7 @@ export function ProductDetailView({
             ) : (
               <div className="absolute inset-0 bg-[var(--gray-100)] flex items-center justify-center">
                 <span className="text-[var(--gray-400)] text-sm font-medium">
-                  Загрузка фото
+                  Фото пока нет
                 </span>
               </div>
             )}
@@ -251,7 +256,7 @@ export function ProductDetailView({
               {categoryName}
             </Link>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--gray-900)] leading-tight">
-              {product.seoH1 || product.name}
+              {purchaseCopy.title}
             </h1>
           </div>
 
@@ -275,7 +280,7 @@ export function ProductDetailView({
             )}
           </section>
 
-          <div className="space-y-2">
+          <div className="rk-detail-actions space-y-2">
             <CalculatorModal product={product} />
             <SellModal contactInfo={sellContactInfo} />
           </div>
@@ -284,6 +289,17 @@ export function ProductDetailView({
 
       {/* Детали: описание → содержание → как сдать */}
       <div className="rounded-2xl border border-[var(--gray-200)] bg-white shadow-sm overflow-hidden">
+        <section className="rk-product-purchase-copy p-5 sm:p-6 border-b border-[var(--gray-100)] text-[var(--gray-700)] text-sm sm:text-base leading-relaxed" aria-labelledby="purchase-benefits">
+          <p>{purchaseCopy.introduction}</p>
+          <p className="mt-3">{purchaseCopy.acceptance}</p>
+          <h2 id="purchase-benefits" className="text-xl sm:text-2xl font-semibold text-[var(--gray-900)] mt-6 mb-3">
+            {purchaseCopy.benefitsHeading}
+          </h2>
+          <ul className="list-disc pl-5 space-y-1.5">
+            {purchaseCopy.benefits.map(benefit => <li key={benefit}>{benefit}</li>)}
+          </ul>
+          <p className="mt-5"><strong>{purchaseCopy.conclusion}</strong></p>
+        </section>
         {hasPageDescription && (
           <section className="p-5 sm:p-6 border-b border-[var(--gray-100)]">
             <h2 className="text-base font-semibold text-[var(--gray-900)] mb-3">

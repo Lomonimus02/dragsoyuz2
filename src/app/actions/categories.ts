@@ -1,5 +1,9 @@
 ﻿"use server";
 
+import { parsePurchaseCopySettings, type PurchaseCopySettings } from "@/lib/product-purchase-copy";
+
+import { isAuthenticated } from "./auth";
+
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
@@ -80,6 +84,7 @@ function pickInfoPageFields(category: {
   infoPageButtonColor: string | null;
   infoPageButtonTextColor: string | null;
   infoPageBlocks: unknown;
+  purchaseCopySettings?: unknown;
 }) {
   return {
     infoPageEnabled: category.infoPageEnabled,
@@ -91,6 +96,7 @@ function pickInfoPageFields(category: {
       category.infoPageButtonTextColor,
     ),
     infoPageBlocks: parseInfoPageBlocks(category.infoPageBlocks),
+    purchaseCopySettings: parsePurchaseCopySettings(category.purchaseCopySettings),
   };
 }
 
@@ -100,6 +106,7 @@ function pickInfoPageInput(input: {
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   infoPageBlocks?: CategoryInfoBlock[];
+  purchaseCopySettings?: PurchaseCopySettings;
 }) {
   const data: Record<string, unknown> = {};
   if (input.infoPageEnabled !== undefined) data.infoPageEnabled = input.infoPageEnabled;
@@ -115,6 +122,9 @@ function pickInfoPageInput(input: {
     data.infoPageButtonTextColor = normalizeInfoPageButtonColor(
       input.infoPageButtonTextColor,
     );
+  }
+  if (input.purchaseCopySettings !== undefined) {
+    data.purchaseCopySettings = parsePurchaseCopySettings(input.purchaseCopySettings) as Prisma.InputJsonValue;
   }
   if (input.infoPageBlocks !== undefined) {
     data.infoPageBlocks = parseInfoPageBlocks(
@@ -153,6 +163,7 @@ export interface CategoryData {
   infoPageButtonColor: string | null;
   infoPageButtonTextColor: string | null;
   infoPageBlocks: CategoryInfoBlock[];
+  purchaseCopySettings?: PurchaseCopySettings;
   isPinnedToDashboard: boolean;
   customRateAu: number | null;
   customRateAg: number | null;
@@ -192,6 +203,7 @@ export interface CreateCategoryInput {
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   infoPageBlocks?: CategoryInfoBlock[];
+  purchaseCopySettings?: PurchaseCopySettings;
   isPinnedToDashboard?: boolean;
   customRateAu?: number | null;
   customRateAg?: number | null;
@@ -228,6 +240,7 @@ export interface UpdateCategoryInput {
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   infoPageBlocks?: CategoryInfoBlock[];
+  purchaseCopySettings?: PurchaseCopySettings;
   isPinnedToDashboard?: boolean;
   customRateAu?: number | null;
   customRateAg?: number | null;
@@ -480,6 +493,7 @@ export async function getCategoryById(id: string): Promise<CategoryResult> {
 export async function createCategory(
   input: CreateCategoryInput
 ): Promise<CategoryResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     if (!input.name?.trim()) {
       return { success: false, error: "ÐÐ°Ð·Ð²Ð°Ð½Ð¸Ðµ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸ Ð¾Ð±ÑÐ·Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾" };
@@ -587,6 +601,7 @@ export async function createCategory(
 export async function updateCategory(
   input: UpdateCategoryInput
 ): Promise<CategoryResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     if (!input.id) {
       return { success: false, error: "ID ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸ Ð¾Ð±ÑÐ·Ð°Ñ‚ÐµÐ»ÐµÐ½" };
@@ -716,6 +731,7 @@ export async function updateCategory(
  * Ð£Ð´Ð°Ð»Ð¸Ñ‚ÑŒ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸ÑŽ
  */
 export async function deleteCategory(id: string): Promise<DeleteCategoryResult> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     if (!id) {
       return { success: false, error: "ID ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸ Ð¾Ð±ÑÐ·Ð°Ñ‚ÐµÐ»ÐµÐ½" };
@@ -1252,6 +1268,7 @@ export interface UpdateCategoryRatesInput {
 export async function updateCategoryRates(
   inputs: UpdateCategoryRatesInput[]
 ): Promise<{ success: true } | { success: false; error: string }> {
+  if (!(await isAuthenticated())) return { success: false, error: "Нет доступа" };
   try {
     // ÐžÐ±Ð½Ð¾Ð²Ð»ÑÐµÐ¼ Ð²ÑÐµ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸ Ð² Ñ‚Ñ€Ð°Ð½Ð·Ð°ÐºÑ†Ð¸Ð¸
     await prisma.$transaction(

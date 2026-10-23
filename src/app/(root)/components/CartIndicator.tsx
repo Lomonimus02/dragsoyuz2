@@ -2,12 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calculator } from "lucide-react";
+import { Calculator } from "@/app/(root)/components/icons";
 import { useCartStore } from "@/store";
 import { useEffect } from "react";
+import { useIsAdmin } from "./YearDiscountsProvider";
+import { useAdminInventoryStore } from "@/store/admin-inventory-store";
 
 export function CartIndicator() {
-  const lineCount = useCartStore((state) => state.items.length);
+  const catalogCount = useCartStore((state) => state.items.length);
+  const isAdmin = useIsAdmin();
+  const manualCount = useAdminInventoryStore((state) => state.lines.length);
+  const lineCount = catalogCount + (isAdmin ? manualCount : 0);
+  useEffect(() => {
+    if (isAdmin) void useAdminInventoryStore.persist.rehydrate();
+  }, [isAdmin]);
   const hasHydrated = useCartStore((state) => state.hasHydrated);
   const pathname = usePathname();
 

@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
-import { Search, Package, ArrowLeft } from "lucide-react";
+import { Search, Package, ArrowLeft } from "@/app/(root)/components/icons";
 import { getProducts } from "@/app/actions";
 import { ProductCard, ProductGridSkeleton } from "../components";
 
@@ -20,6 +20,7 @@ export async function generateMetadata({
   return {
     title: query ? `Поиск: ${query}` : "Поиск радиодеталей",
     description: `Результаты поиска радиодеталей по запросу "${query}"`,
+    robots: { index: false, follow: true },
   };
 }
 
@@ -127,7 +128,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <div className="min-h-screen bg-[var(--gray-50)]">
       {/* Page header */}
-      <div className="bg-[var(--primary-900)] text-white py-8 md:py-12">
+      <div className="rk-page-heading bg-[var(--primary-900)] text-white py-8 md:py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-3 mb-2">
             <Search className="w-6 h-6 text-[var(--accent-400)]" />

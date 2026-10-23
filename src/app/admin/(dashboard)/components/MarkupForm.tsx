@@ -135,6 +135,7 @@ export function MarkupForm({ initialSettings }: MarkupFormProps) {
       <div className="text-sm text-slate-500">
         Последнее обновление:{" "}
         {new Date(initialSettings.updatedAt).toLocaleString("ru-RU", {
+          timeZone: "Europe/Moscow",
           dateStyle: "long",
           timeStyle: "short",
         })}

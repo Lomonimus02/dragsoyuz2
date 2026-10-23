@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { X, Loader2, MessageSquare, CheckCircle } from "lucide-react";
+import { X, Loader2, MessageSquare, CheckCircle } from "@/app/(root)/components/icons";
 import { submitReview } from "@/app/actions";
 
 export function ReviewSubmitModal() {
@@ -86,7 +86,7 @@ export function ReviewSubmitModal() {
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-          <div className="relative w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-2xl">
+          <div className="rk-dialog relative w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-2xl">
             <button
               type="button"
               onClick={close}

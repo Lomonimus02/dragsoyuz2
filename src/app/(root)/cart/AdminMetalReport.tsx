@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { Printer } from "lucide-react";
+import { Printer } from "@/app/(root)/components/icons";
 import type { InventoryLine } from "@/store";
 import {
   accumulateGoldAuByGroup,

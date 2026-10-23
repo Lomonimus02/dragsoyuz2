@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { SITE_BRAND, siteHostLabel } from "@/lib/site";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -72,12 +74,10 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-slate-700">
-        <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center">
-          <FolderOpen className="w-5 h-5 text-white" />
-        </div>
+        <Image src="/icon.svg" alt="" width={40} height={40} className="shrink-0 rounded-lg" />
         <div>
-          <h1 className="text-lg font-bold text-white">Админ-панель</h1>
-          <p className="text-xs text-slate-400">Радиодетали</p>
+          <h1 className="text-lg font-bold text-white">{SITE_BRAND}</h1>
+          <p className="text-xs text-emerald-200">{siteHostLabel()} · Админ-панель</p>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
           </button>
         </form>
         <p className="text-xs text-slate-500 text-center">
-          © 2026 Радиодетали
+          © 2026 {SITE_BRAND}
         </p>
       </div>
     </div>
@@ -223,10 +223,11 @@ export default function DashboardLayout({
             <Menu className="w-6 h-6 text-slate-600" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <FolderOpen className="w-4 h-4 text-white" />
+            <Image src="/icon.svg" alt="" width={32} height={32} className="rounded-lg" />
+            <div>
+              <h1 className="font-semibold text-slate-800">{SITE_BRAND}</h1>
+              <p className="text-xs text-slate-500">Админ-панель · {siteHostLabel()}</p>
             </div>
-            <h1 className="font-semibold text-slate-800">Админ-панель</h1>
           </div>
         </header>
 

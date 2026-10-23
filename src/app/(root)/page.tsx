@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { CatalogImage as Image } from "./components/CatalogImage";
 import type { Metadata } from "next";
 import {
   ArrowRight,
@@ -8,28 +8,21 @@ import {
   Truck,
   Clock,
   Sparkles,
-} from "lucide-react";
+} from "@/app/(root)/components/icons";
 import { getCategoryShowcase, getGlobalSettings } from "@/app/actions";
 import { BenefitsSection } from "./components/BenefitCard";
 import { ReviewsSection } from "./components/ReviewsSection";
 import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
 // Отключаем статический пререндеринг (требуется БД)
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: { absolute: `Покупка радиодеталей и плат в СПБ | Скупка по выгодным ценам | Любые объемы | ${SITE_BRAND}` },
-  description: `Выгодная скупка радиодеталей, приборов и лома драгметаллов в Санкт-Петербурге. Высокие цены, любые объемы, честное взвешивание, оплата сразу. Работаем с физическими и юридическими лицами — компания ${SITE_BRAND} СПб`,
-  alternates: {
-    canonical: BASE_URL,
-  },
-  openGraph: {
-    title: `Покупка радиодеталей и плат в СПБ | Скупка по выгодным ценам | ${SITE_BRAND}`,
-    description: "Выгодная скупка радиодеталей, приборов и лома драгметаллов в Санкт-Петербурге. Высокие цены, любые объемы, честное взвешивание, оплата сразу.",
-    type: "website",
-    url: BASE_URL,
-  },
-};
+export const metadata: Metadata = pageMetadata({
+  title: `${SITE_BRAND} — скупка радиодеталей и плат в Санкт-Петербурге`,
+  description: `${SITE_BRAND}: покупаем радиодетали, платы и приборы в Санкт-Петербурге. Актуальные цены, оценка по фото и оплата при приёмке. Принимаем посылки со всей России.`,
+  path: "/",
+});
 
 // JSON-LD Schema.org для LocalBusiness (лучше для Google Local)
 interface OrganizationSchemaProps {
@@ -118,10 +111,10 @@ function OrganizationSchema({ name, phone, email, address, workSchedule, telegra
   const schema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "@id": baseUrl,
+    "@id": `${baseUrl}/#organization`,
     name,
     url: baseUrl,
-    logo: `${baseUrl}/logo.png`,
+    logo: `${baseUrl}/logo.svg`,
     image: `${baseUrl}/opengraph-image`,
     description: "Скупка радиодеталей, содержащих драгоценные металлы. Транзисторы, конденсаторы, микросхемы, реле.",
     priceRange: "₽₽",
@@ -145,10 +138,21 @@ function OrganizationSchema({ name, phone, email, address, workSchedule, telegra
     ...(sameAs.length > 0 && { sameAs }),
   };
 
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${baseUrl}/#website`,
+    name,
+    alternateName: name === "РадиоКлад" ? ["Радио Клад"] : undefined,
+    url: `${baseUrl}/`,
+    inLanguage: "ru-RU",
+    publisher: { "@id": `${baseUrl}/#organization` },
+  };
+
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify([schema, website]).replace(/</g, "\\u003c") }}
     />
   );
 }
@@ -172,88 +176,26 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-// Hero Section
+// The section order stays unchanged; only presentation is replaced.
 function HeroSection() {
   return (
-    <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
-      {/* Premium gold accent gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-amber-500/10" />
-      
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fbbf24' fill-opacity='0.8'%3E%3Cpath d='M50 50m-40 0a40 40 0 1 0 80 0a40 40 0 1 0-80 0' stroke-width='0.5' stroke='%23fbbf24'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-          }}
-        />
-      </div>
-
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl" />
-
-      <div className="container mx-auto px-4 py-20 md:py-28 lg:py-36 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-500/30 rounded-full text-amber-300 text-sm font-medium mb-8">
-            <Sparkles className="w-4 h-4" />
-            Надёжный партнёр с 2014 года
-          </div>
-
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-transparent">
-              {SITE_BRAND}
-            </span>
-          </h1>
-          <h2 className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-8 max-w-2xl mx-auto font-medium">
-            Скупка радиодеталей в СПб по высоким ценам
-          </h2>
-          <p className="text-lg text-white/60 mb-10 max-w-xl mx-auto">
-            Честная оценка, оплата сразу, работаем с физическими и юридическими лицами
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/catalog"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl font-semibold text-lg transition-all shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40"
-            >
-              Смотреть каталог
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/contacts"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl font-semibold text-lg transition-all backdrop-blur-sm"
-            >
-              Связаться с нами
-            </Link>
-          </div>
-          <div className="flex justify-center mt-4 sm:hidden">
-            <Link
-              href="/postal"
-              className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/5 hover:bg-white/15 border border-white/15 rounded-xl font-semibold text-lg text-white/80 hover:text-white transition-all backdrop-blur-sm"
-            >
-              <Truck className="w-4 h-4" />
-              Почтовые отправления
-            </Link>
-          </div>
+    <section className="rk-hero">
+      <picture className="rk-hero-artwork">
+        <source media="(max-width: 767px)" srcSet="/images/radioklad-real-parts-mobile-v2.png" width={1536} height={1024} />
+        {/* Art direction selects a complete composition for each screen size. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/radioklad-real-parts-desktop-v2.png" alt="" width={1774} height={887} fetchPriority="high" className="rk-hero-image" />
+      </picture>
+      <div className="container mx-auto px-4 rk-hero-content">
+        <p className="rk-eyebrow"><span /> Скупка радиодеталей · Санкт-Петербург</p>
+        <h1>{SITE_BRAND}</h1>
+        <p className="rk-hero-tagline">В ваших деталях — больше ценности.</p>
+        <p className="rk-hero-description">Покупаем радиодетали, платы и приборы.<br />Оценим по актуальным ценам. Честно рассчитаем. Сразу оплатим.</p>
+        <div className="rk-hero-buttons">
+          <Link href="/catalog" className="rk-button rk-button-primary">Смотреть каталог <ArrowRight className="w-4 h-4" /></Link>
+          <Link href="/contacts" className="rk-button rk-button-outline">Связаться с нами</Link>
         </div>
-      </div>
-
-      {/* Bottom wave */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg
-          viewBox="0 0 1440 120"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-auto"
-        >
-          <path
-            d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
-            fill="var(--background)"
-          />
-        </svg>
+        <Link href="/postal" className="rk-hero-postal"><Truck className="w-4 h-4" /> Принимаем посылки со всей России <ArrowRight className="w-3 h-3" /></Link>
       </div>
     </section>
   );
@@ -270,15 +212,15 @@ async function CatalogSection() {
   const showcaseItems = result.data;
 
   return (
-    <section className="py-16 md:py-20">
+    <section className="rk-showcase py-16 md:py-20">
       <div className="container mx-auto px-4">
-        <div className="flex items-end justify-between mb-8">
+        <div className="rk-section-heading flex items-end justify-between mb-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-[var(--gray-900)]">
-              Каталог
+              Каталог радиодеталей
             </h2>
             <p className="text-[var(--gray-600)] mt-2">
-              Топовые позиции из каждой категории
+              Найдите свои детали и узнайте цену скупки
             </p>
           </div>
           <Link
@@ -291,46 +233,46 @@ async function CatalogSection() {
         </div>
 
         {/* Grid: 1 column mobile, 3 md, 5 xl */}
-        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="rk-showcase-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {showcaseItems.map((item) => (
             <Link
               key={item.id}
               href={`/catalog/${item.categorySlug}`}
-              className="group block bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg transition-all duration-300 overflow-hidden"
+              className="rk-showcase-card group block bg-white rounded-xl border border-[var(--gray-200)] hover:border-[var(--accent-400)] hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
               {/* Product image */}
-              <div className="relative aspect-[3/2] md:aspect-square bg-[var(--gray-100)] overflow-hidden">
+              <div className="rk-showcase-media relative aspect-square bg-[var(--gray-100)] overflow-hidden">
                 {item.image ? (
                   <Image
                     src={item.image}
                     alt={item.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 20vw"
+                    className="object-contain"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                    <span className="text-gray-400 text-sm font-medium">Загрузка фото</span>
+                    <span className="text-gray-500 text-sm font-medium">Фото пока нет</span>
                   </div>
                 )}
                 {/* Category label with gradient fade at top */}
-                <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/70 via-black/40 to-transparent pt-3 pb-10 px-3">
-                  <span className="block text-white text-lg font-bold drop-shadow-md">
+                <div className="rk-category-label">
+                  <span className="block">
                     {item.categoryName}
                   </span>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-2 md:p-4">
+              <div className="rk-showcase-content p-2 md:p-4">
                 {/* Product name */}
-                <h3 className="font-semibold text-[var(--gray-800)] group-hover:text-[var(--primary-600)] transition-colors line-clamp-2 min-h-[2.5rem]">
+                <h3 className="font-semibold text-[var(--gray-800)] group-hover:text-[var(--primary-600)] transition-colors min-h-[2.5rem]">
                   {item.name}
                 </h3>
 
                 {/* Description */}
                 {item.description && (
-                  <p className="text-[15px] leading-snug text-[var(--gray-800)] font-medium mb-5 line-clamp-2">
+                  <p className="text-[15px] leading-snug text-[var(--gray-800)] font-medium mb-5">
                     {item.description}
                   </p>
                 )}
@@ -346,7 +288,7 @@ async function CatalogSection() {
                     </div>
                   ) : item.hasModifications && item.modifications.length > 0 ? (
                     /* Таблица модификаций */
-                    <div className="rounded-lg border border-[var(--gray-200)] overflow-hidden">
+                    <div className="rk-modifications rounded-lg border border-[var(--gray-200)] overflow-hidden">
                       {/* Заголовок */}
                       <div className="flex items-center bg-[var(--gray-100)] text-[11px] font-bold uppercase tracking-wide text-[var(--gray-500)] border-b border-[var(--gray-200)]">
                         <span className="flex-1 px-2 py-1.5 min-w-0 whitespace-nowrap overflow-hidden">{item.modLabel || 'Модификация'}</span>
@@ -390,7 +332,7 @@ async function CatalogSection() {
                   ) : (
                     <div className="space-y-1">
                       {item.priceNew !== null && (
-                        <div className="flex items-center justify-between px-2 py-1 bg-[var(--gray-100)] border border-[var(--gray-900)] rounded-md">
+                        <div className="rk-price-row flex items-center justify-between">
                           <span className="text-sm font-medium text-[var(--gray-900)]">
                             {item.isSingleType ? 'Цена' : 'Новые'}
                           </span>
@@ -400,7 +342,7 @@ async function CatalogSection() {
                         </div>
                       )}
                       {item.priceUsed !== null && !item.isSingleType && (
-                        <div className="flex items-center justify-between px-2 py-1 bg-[var(--gray-100)] border border-[var(--gray-900)] rounded-md">
+                        <div className="rk-price-row flex items-center justify-between">
                           <span className="text-sm font-medium text-[var(--gray-900)]">Б/У</span>
                           <span className="text-sm font-bold text-[var(--gray-900)]">
                             {formatPrice(item.priceUsed)}{getPriceUnitSuffix(item.unitType)}
@@ -426,7 +368,7 @@ async function CatalogSection() {
         <div className="flex justify-center mt-10">
           <Link
             href="/catalog"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-lg rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
+            className="rk-button rk-button-primary"
           >
             Смотреть каталог
             <ArrowRight className="w-5 h-5" />
@@ -446,7 +388,7 @@ function StatsSection() {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-gradient-to-r from-[var(--primary-800)] to-[var(--primary-900)]">
+    <section className="rk-stats py-12 md:py-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {stats.map((stat, index) => (
@@ -469,7 +411,7 @@ function StatsSection() {
 // CTA Section
 function CTASection({ phone, phoneHref }: { phone: string; phoneHref: string }) {
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-r from-[var(--primary-800)] to-[var(--primary-900)]">
+    <section className="rk-cta py-16 md:py-20">
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
           Готовы сдать радиодетали?
