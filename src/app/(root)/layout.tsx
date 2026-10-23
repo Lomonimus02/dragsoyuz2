@@ -53,7 +53,8 @@ export default async function RootLayout({
     telegramHref: formatTelegramHref(settings.telegramUsername || "dragsoyuz"),
     vkHref: settings.vkLink?.trim() || DEFAULT_SITE_VK_URL,
     whatsappHref: sellContactInfo.whatsappHref,
-    workSchedule: settings.workSchedule?.split("\n")[0] || "Ежедневно с 10:00 до 20:00",
+    workSchedule: settings.workSchedule?.trim() || "Ежедневно с 10:00 до 20:00",
+    address: settings.address?.trim() || "г. Санкт-Петербург",
   } : undefined;
 
   // Формируем данные для Footer  

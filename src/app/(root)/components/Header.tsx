@@ -19,6 +19,7 @@ export interface HeaderContactInfo {
   vkHref: string;
   whatsappHref?: string;
   workSchedule: string;
+  address: string;
 }
 
 // Дефолтные значения на случай если данные не загружены
@@ -28,6 +29,7 @@ const DEFAULT_CONTACTS: HeaderContactInfo = {
   telegramHref: "https://t.me/dragsoyuz",
   vkHref: DEFAULT_SITE_VK_URL,
   workSchedule: "Ежедневно с 10:00 до 20:00",
+  address: "г. Санкт-Петербург",
 };
 
 const POPULAR_SEARCHES = [
@@ -301,7 +303,7 @@ export function Header({ contactInfo, categories = [] }: HeaderProps) {
             {[menuItems[1], menuItems[2], menuItems[4], menuItems[6], menuItems[5], menuItems[3]].map(item => <Link key={item.href} href={item.href} aria-current={pathname.startsWith(item.href) ? "page" : undefined}>
               {item.href === "/catalog" && <Package className="w-4 h-4" />}{item.label}
             </Link>)}
-            <span className="rk-location"><MapPin className="w-3.5 h-3.5" /> Санкт-Петербург</span>
+            <Link href="/contacts" className="rk-location"><MapPin className="w-3.5 h-3.5" /><span>{contacts.address}</span></Link>
           </nav>
         </div>
       </header>
@@ -320,6 +322,7 @@ export function Header({ contactInfo, categories = [] }: HeaderProps) {
             </div>)}
           </nav>
           <div className="rk-drawer-contact"><span>Обсудим ваши детали</span><a href={contacts.phoneHref}>{contacts.phoneNumber}</a><p>{contacts.workSchedule}</p>
+            <Link href="/contacts" className="rk-drawer-address" onClick={closeMenu}><MapPin className="w-4 h-4" /><span>{contacts.address}</span></Link>
             <div className="rk-socials">
               <a href={contacts.telegramHref} target="_blank" rel="noopener noreferrer" aria-label="Telegram"><TelegramIcon className="w-5 h-5" /></a>
               {contacts.whatsappHref && <a href={contacts.whatsappHref} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><WhatsAppIcon className="w-5 h-5" /></a>}
