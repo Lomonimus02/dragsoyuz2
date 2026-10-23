@@ -33,6 +33,7 @@ export function isGoldBearingGroup(id: PrintGroupId): id is GoldBearingGroupId {
 }
 
 type CatalogHint = {
+  unitType?: "PIECE" | "GRAM" | "KG" | null;
   categorySlug?: string | null;
   categoryName?: string | null;
   productName?: string | null;
@@ -65,13 +66,17 @@ export function isRelay(input: CatalogHint): boolean {
 }
 
 export function shouldShowYearPicker(input: CatalogHint): boolean {
-  const group = classifyPrintGroup(input);
-  return group === "chips" || group === "connectors" || isRelay(input);
+  return shouldApplyYearDiscount(input);
 }
 
-/** Year overlay on price: only transistors, ICs, diodes, connectors. */
+/** Year matters only for piece-priced transistors, ICs, diodes and connectors. */
 export function shouldApplyYearDiscount(input: CatalogHint): boolean {
-  const group = classifyPrintGroup(input);
+  if (input.unitType === "KG" || input.unitType === "GRAM") return false;
+  // The catalog category determines the rule, not words in the product name.
+  const group = classifyPrintGroup({
+    categorySlug: input.categorySlug,
+    categoryName: input.categoryName,
+  });
   return group === "chips" || group === "connectors";
 }
 

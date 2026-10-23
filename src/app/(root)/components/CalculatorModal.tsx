@@ -170,8 +170,9 @@ export function CalculatorModal({
     return showConditionPicker ? null : defaultCondition(product);
   });
   const [yearPeriodId, setYearPeriodId] = useState<YearPeriodId | null>(() => {
+    if (!showYearPicker) return "until1990";
     if (editLine) return editLine.yearPeriodId;
-    return showYearPicker ? null : "until1990";
+    return null;
   });
   const [customMarkdownEnabled, setCustomMarkdownEnabled] = useState(() =>
     Boolean(
@@ -369,7 +370,7 @@ export function CalculatorModal({
     }
 
     const resolvedCondition = condition ?? defaultCondition(product);
-    const resolvedYear = yearPeriodId ?? "until1990";
+    const resolvedYear = showYearPicker ? yearPeriodId ?? "until1990" : "until1990";
 
     const modificationName =
       product.modifications.find((mod) => mod.id === modificationId)?.name ??
@@ -467,7 +468,9 @@ export function CalculatorModal({
               <p className="text-xs font-semibold text-[var(--gray-600)] mb-5">
                 {isEditing
                   ? "Изменения сохранятся в этой строке описи."
-                  : "Каждый год и состояние — отдельная строка. Можно добавить несколько вариантов этой детали."}
+                  : showYearPicker
+                    ? "Каждый год и состояние — отдельная строка. Можно добавить несколько вариантов этой детали."
+                    : "Укажите количество или вес. Можно добавить несколько вариантов этой детали."}
               </p>
 
               {needsMod && (

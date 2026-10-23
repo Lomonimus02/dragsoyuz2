@@ -4,6 +4,7 @@ import {
   usesGramQuantity,
 } from "@/lib/gram-quantity";
 import {
+  shouldApplyYearDiscount,
   shouldCountInventoryAu,
   type InventoryMetalsMode,
 } from "@/lib/inventory-print-groups";
@@ -235,7 +236,9 @@ export function accumulateGoldAuByGroup(
       product.unitType,
       usesGramQuantity(product),
     );
-    const yearPercent = getDiscountPercent(yearDiscounts, line.yearPeriodId);
+    const yearPercent = shouldApplyYearDiscount(product)
+      ? getDiscountPercent(yearDiscounts, line.yearPeriodId)
+      : 0;
     const customPercent =
       typeof line.customDiscountPercent === "number" &&
       Number.isFinite(line.customDiscountPercent)
