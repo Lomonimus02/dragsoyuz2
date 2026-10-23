@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { productSeoCopy } from "@/lib/seo-content";
+import { productCatalogPath } from "@/lib/seo-routing";
 import Link from "next/link";
 import { ChevronRight } from "@/app/(root)/components/icons";
 import {
@@ -31,19 +33,15 @@ function getDisplayPrice(product: {
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const { slug: categorySlug, productSlug } = await params;
+  const { productSlug } = await params;
   const result = await getProductBySlug(productSlug);
 
   if (!result.success) {
-    return {
-      title: "Товар не найден",
-    };
+    notFound();
   }
 
   const product = result.data;
-  const canonicalUrl = `${BASE_URL}/catalog/${categorySlug}/${productSlug}`;
-  const copyCategory = await getCategoryBySlug(product.categorySlug);
-  const purchaseCopy = productPurchaseCopy(product, SITE_BRAND, copyCategory.success ? copyCategory.data.purchaseCopySettings : undefined);
+  const canonicalUrl = BASE_URL + productCatalogPath(product);
 
   const imageUrl = product.image
     ? product.image.startsWith("http")
@@ -52,8 +50,8 @@ export async function generateMetadata({
     : undefined;
 
   return pageMetadata({
-    title: purchaseCopy.title,
-    description: product.seoDescription || purchaseCopy.metaDescription,
+    title: productSeoCopy(product, SITE_BRAND).title,
+    description: productSeoCopy(product, SITE_BRAND).description,
     path: canonicalUrl,
     image: imageUrl ? { url: imageUrl, alt: product.name } : undefined,
   });
@@ -188,7 +186,7 @@ async function RelatedProducts({
           <ProductCard
             key={product.id}
             product={product}
-            categorySlug={categorySlug}
+            categorySlug={product.categorySlug}
           />
         ))}
       </div>
@@ -197,20 +195,15 @@ async function RelatedProducts({
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { slug: categorySlug, productSlug } = await params;
-
-  const categoryResult = await getCategoryBySlug(categorySlug);
-  if (!categoryResult.success) {
-    notFound();
-  }
-  const category = categoryResult.data;
+  const { productSlug } = await params;
 
   const result = await getProductBySlug(productSlug);
-  if (!result.success) {
-    notFound();
-  }
-
+  if (!result.success) notFound();
   const product = result.data;
+  const categorySlug = product.categorySlug;
+  const categoryResult = await getCategoryBySlug(categorySlug);
+  if (!categoryResult.success) notFound();
+  const category = categoryResult.data;
   const displayPrice = getDisplayPrice(product);
   const purchaseCopy = productPurchaseCopy(product, SITE_BRAND, category.purchaseCopySettings);
 

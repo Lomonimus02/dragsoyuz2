@@ -1,3 +1,4 @@
+import { seoPageCopy } from "@/lib/seo-content";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -58,7 +59,7 @@ export default async function AboutPage() {
         <div className="container mx-auto">
           <InfoBreadcrumb current="О компании" />
           <header className="rk-info-intro">
-            <h1>О компании «{SITE_BRAND}»</h1>
+            <h1>{seoPageCopy("/about")?.h1}</h1>
             <p className="rk-info-lead">
               Профессиональная скупка радиодеталей, содержащих драгоценные
               металлы. Честно, быстро, выгодно.

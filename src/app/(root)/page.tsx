@@ -1,3 +1,4 @@
+import { seoPageCopy } from "@/lib/seo-content";
 import Link from "next/link";
 import { CatalogImage as Image } from "./components/CatalogImage";
 import type { Metadata } from "next";
@@ -188,7 +189,7 @@ function HeroSection() {
       </picture>
       <div className="container mx-auto px-4 rk-hero-content">
         <p className="rk-eyebrow"><span /> Скупка радиодеталей · Санкт-Петербург</p>
-        <h1>{SITE_BRAND}</h1>
+        <h1>{seoPageCopy("/")?.h1}</h1>
         <p className="rk-hero-tagline">В ваших деталях — больше ценности.</p>
         <p className="rk-hero-description">Покупаем радиодетали, платы и приборы.<br />Оценим по актуальным ценам. Честно рассчитаем. Сразу оплатим.</p>
         <div className="rk-hero-buttons">

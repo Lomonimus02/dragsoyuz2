@@ -222,6 +222,7 @@ model Product {
   manualPriceUsed Decimal? @db.Decimal(12, 2) // Фиксированная цена для "Б/У"
 
   // SEO: кастомный H1 (если задан — используется вместо name на странице товара)
+  seoTitle String? @db.Text
   seoH1 String? @db.Text
   // SEO: кастомный meta description (если задан — используется вместо авто-шаблона)
   seoDescription String? @db.Text

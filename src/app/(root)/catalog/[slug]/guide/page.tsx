@@ -1,3 +1,4 @@
+import { seoPageCopy } from "@/lib/seo-content";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -78,7 +79,7 @@ export default async function CategoryGuidePage({ params }: GuidePageProps) {
             </Link>
             <ChevronRight className="w-4 h-4 shrink-0" />
             <span className="text-[var(--gray-900)] font-medium whitespace-nowrap">
-              {pageTitle}
+              {seoPageCopy(`/catalog/${slug}/guide`)?.h1 || pageTitle}
             </span>
           </nav>
         </div>
@@ -99,7 +100,7 @@ export default async function CategoryGuidePage({ params }: GuidePageProps) {
               <BookOpen className="w-6 h-6 text-[var(--accent-600)]" />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-[var(--gray-900)]">
-              {pageTitle}
+              {seoPageCopy(`/catalog/${slug}/guide`)?.h1 || pageTitle}
             </h1>
           </div>
 

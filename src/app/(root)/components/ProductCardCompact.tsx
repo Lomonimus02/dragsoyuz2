@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { productCatalogPath } from "@/lib/seo-routing";
 import { CatalogImage as Image } from "./CatalogImage";
 import Link from "next/link";
 import { ZoomIn } from "@/app/(root)/components/icons";
@@ -97,14 +98,14 @@ function ModificationsTableCompact({
   );
 }
 
-export function ProductCardCompact({ product, categorySlug, contactInfo }: ProductCardCompactProps) {
+export function ProductCardCompact({ product, contactInfo }: ProductCardCompactProps) {
   const hasNewPrice = product.priceNew !== null;
   const hasUsedPrice = product.priceUsed !== null;
   
   // Стейт для модального окна с изображением
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
-  const productUrl = `/catalog/${categorySlug}/${product.slug}`;
+  const productUrl = productCatalogPath(product);
 
   return (
     <>

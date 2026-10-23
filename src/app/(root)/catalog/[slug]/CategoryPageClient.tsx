@@ -1,5 +1,7 @@
 "use client";
 
+import { seoPageCopy } from "@/lib/seo-content";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -75,7 +77,7 @@ export function CategoryPageClient({
           </nav>
           <div className="rk-category-hero-grid">
             <div className="rk-category-hero-copy">
-              <h1>{category.name}</h1>
+              <h1>{seoPageCopy(`/catalog/${category.slug}`)?.h1 || category.name}</h1>
               <p>Товаров в разделе: {total}</p>
               <Link href="/catalog" className="rk-category-back">
                 <ArrowLeft className="w-4 h-4" /> Все категории

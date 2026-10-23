@@ -398,3 +398,5 @@
   .storefront-shell { color: #111; background: white; }
   .rk-menu-layer { display: none; }
 }
+
+.rk-hero h1 { max-width: 850px; margin-inline: auto; font-size: clamp(30px, 4.2vw, 58px); text-wrap: balance; }

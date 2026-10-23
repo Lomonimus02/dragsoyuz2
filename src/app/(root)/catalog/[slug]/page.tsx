@@ -21,9 +21,7 @@ export async function generateMetadata({
   const result = await getCategoryBySlug(slug);
 
   if (!result.success) {
-    return {
-      title: "Категория не найдена",
-    };
+    notFound();
   }
 
   const category = result.data;

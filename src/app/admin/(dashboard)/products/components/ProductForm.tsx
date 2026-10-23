@@ -60,6 +60,7 @@ interface FormData {
   slug: string;
   description: string;
   image: string;
+  seoTitle: string;
   seoH1: string;
   seoDescription: string;
   categoryId: string;
@@ -164,6 +165,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
       slug: product?.slug || "",
       description: product?.description || "",
       image: product?.image || "",
+      seoTitle: product?.seoTitle || "",
       seoH1: product?.seoH1 || "",
       seoDescription: product?.seoDescription || "",
       categoryId: product?.categoryId || defaultCategoryId || "",
@@ -457,6 +459,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
           description: hasDescription ? data.description || null : null,
           pageDescription: hasPageDescription ? formatProductDescription(pageDescriptionDraft) || null : null,
           image: data.image || null,
+          seoTitle: data.seoTitle || null,
           seoH1: data.seoH1 || null,
           seoDescription: data.seoDescription || null,
           categoryId: data.categoryId,
@@ -500,6 +503,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
           description: hasDescription ? data.description || null : null,
           pageDescription: hasPageDescription ? formatProductDescription(pageDescriptionDraft) || null : null,
           image: data.image || null,
+          seoTitle: data.seoTitle || null,
           seoH1: data.seoH1 || null,
           seoDescription: data.seoDescription || null,
           categoryId: data.categoryId,
@@ -707,11 +711,13 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                 )}
               </div>
 
-              <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600">
-                <input type="hidden" {...register("seoH1")} />
-                Заголовок и текст о скупке формируются автоматически из названия товара и его категории.
-                Условия по году выпуска добавляются для транзисторов, микросхем, разъёмов и диодов.
-                Характеристики конкретной детали можно указать в полях описания выше.
+              <div>
+                <label htmlFor="seoTitle" className="block text-sm font-medium text-slate-700 mb-1">SEO Title — заголовок в поиске</label>
+                <input id="seoTitle" {...register("seoTitle")} className="w-full px-4 py-2.5 rounded-lg border border-slate-300" placeholder="Если пусто — название товара и бренд" />
+              </div>
+              <div>
+                <label htmlFor="seoH1" className="block text-sm font-medium text-slate-700 mb-1">H1 — заголовок на странице</label>
+                <input id="seoH1" {...register("seoH1")} className="w-full px-4 py-2.5 rounded-lg border border-slate-300" placeholder="Если пусто — скупка и название товара" />
               </div>
 
               {/* SEO Description */}

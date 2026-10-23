@@ -80,6 +80,7 @@ export interface ProductWithPrice {
   description: string | null;
   pageDescription: string | null;
   image: string | null;
+  seoTitle: string | null;
   seoH1: string | null;
   seoDescription: string | null;
   categoryId: string;
@@ -148,6 +149,7 @@ export interface CreateProductInput {
   description?: string | null;
   pageDescription?: string | null;
   image?: string | null;
+  seoTitle?: string | null;
   seoH1?: string | null;
   seoDescription?: string | null;
   categoryId: string;
@@ -201,6 +203,7 @@ export interface UpdateProductInput {
   description?: string | null;
   pageDescription?: string | null;
   image?: string | null;
+  seoTitle?: string | null;
   seoH1?: string | null;
   seoDescription?: string | null;
   categoryId?: string;
@@ -339,6 +342,7 @@ interface DbProductWithCategory {
   isUsedAvailable: boolean;
   manualPriceNew: unknown | null;
   manualPriceUsed: unknown | null;
+  seoTitle: string | null;
   seoH1: string | null;
   seoDescription: string | null;
   createdAt: Date;
@@ -632,6 +636,7 @@ function serializeProduct(
     description: product.description,
     pageDescription: product.pageDescription ?? null,
     image: product.image,
+    seoTitle: product.seoTitle ?? null,
     seoH1: product.seoH1 ?? null,
     seoDescription: product.seoDescription ?? null,
     categoryId: product.categoryId,
@@ -1254,6 +1259,7 @@ export async function createProduct(
         description: input.description ?? null,
         pageDescription: input.pageDescription ?? null,
         image: input.image ?? null,
+        seoTitle: input.seoTitle ?? null,
         seoH1: input.seoH1 ?? null,
         seoDescription: input.seoDescription ?? null,
         categoryId: input.categoryId,
@@ -1404,6 +1410,7 @@ export async function updateProduct(
     if (input.description !== undefined) updateData.description = input.description;
     if (input.pageDescription !== undefined) updateData.pageDescription = input.pageDescription;
     if (input.image !== undefined) updateData.image = input.image;
+    if (input.seoTitle !== undefined) updateData.seoTitle = input.seoTitle?.trim() || null;
     if (input.seoH1 !== undefined) updateData.seoH1 = input.seoH1 ?? null;
     if (input.seoDescription !== undefined) updateData.seoDescription = input.seoDescription ?? null;
     if (input.categoryId !== undefined) updateData.category = { connect: { id: input.categoryId } };

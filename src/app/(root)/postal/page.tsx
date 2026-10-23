@@ -1,5 +1,7 @@
 "use client";
 
+import { seoPageCopy } from "@/lib/seo-content";
+
 import { useState } from "react";
 import { InfoBreadcrumb } from "../components/InfoBreadcrumb";
 import {
@@ -63,7 +65,7 @@ export default function PostalPage() {
         <InfoBreadcrumb current="Почтовые отправления" />
         <header className="rk-info-intro rk-postal-intro">
           <div>
-            <h1>Сдайте радиодетали быстро и выгодно!</h1>
+            <h1>{seoPageCopy("/postal")?.h1}</h1>
             <p className="rk-info-lead">
               Отправьте нам ваши радиодетали, приборы и сырье, и мы гарантируем
               прозрачную оценку и быстрый расчет.

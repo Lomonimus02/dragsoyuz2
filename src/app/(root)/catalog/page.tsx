@@ -1,3 +1,4 @@
+import { seoPageCopy } from "@/lib/seo-content";
 import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -112,7 +113,7 @@ export default async function CatalogPage() {
       <div className="rk-page-heading bg-[var(--primary-900)] text-white py-8 md:py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
-            Каталог радиодеталей
+            {seoPageCopy("/catalog")?.h1}
           </h1>
           <p className="text-white/70 mt-2">
             Актуальные цены скупки на основе курса драгоценных металлов

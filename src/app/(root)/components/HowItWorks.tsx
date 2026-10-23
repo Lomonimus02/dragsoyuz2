@@ -1,3 +1,4 @@
+import { seoPageCopy } from "@/lib/seo-content";
 import {
   Phone,
   MapPinned,
@@ -45,7 +46,7 @@ export function HowItWorks({ variant = "section" }: { variant?: "section" | "pag
     <section className="rk-selling-guide">
       <div className="container mx-auto">
         <header className="rk-info-intro rk-selling-intro">
-          <TitleTag>Как сдать радиодетали:<span>4 простых шага</span></TitleTag>
+          <TitleTag>{variant === "page" ? seoPageCopy("/how-to-sell")?.h1 : <>Как сдать радиодетали:<span>4 простых шага</span></>}</TitleTag>
           <div className="rk-selling-emblem" aria-hidden="true"><Calculator /></div>
         </header>
         <div className="rk-selling-layout">

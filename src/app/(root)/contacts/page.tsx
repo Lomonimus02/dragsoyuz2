@@ -1,3 +1,4 @@
+import { seoPageCopy } from "@/lib/seo-content";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -64,7 +65,7 @@ export default async function ContactsPage() {
       <div className="container mx-auto">
         <InfoBreadcrumb current="Контакты" />
         <header className="rk-info-intro rk-contact-intro">
-          <h1>Свяжитесь с нами</h1>
+          <h1>{seoPageCopy("/contacts")?.h1}</h1>
           <p className="rk-info-lead">
             Мы всегда рады помочь с оценкой ваших радиодеталей. Выберите удобный
             способ связи.

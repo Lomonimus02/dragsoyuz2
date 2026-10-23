@@ -8,6 +8,7 @@ import { CalculatorModal } from "./CalculatorModal";
 import { ProductMetalContent } from "./ProductMetalContent";
 import { productPurchaseCopy } from "@/lib/product-purchase-copy";
 import { SITE_BRAND } from "@/lib/site";
+import { productSeoCopy } from "@/lib/seo-content";
 
 function getPriceUnitSuffix(unitType: UnitType): string {
   switch (unitType) {
@@ -256,7 +257,7 @@ export function ProductDetailView({
               {categoryName}
             </Link>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--gray-900)] leading-tight">
-              {purchaseCopy.title}
+              {productSeoCopy(product, SITE_BRAND).h1}
             </h1>
           </div>
 

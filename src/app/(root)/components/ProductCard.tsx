@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { productCatalogPath } from "@/lib/seo-routing";
 import { CatalogImage as Image } from "./CatalogImage";
 import Link from "next/link";
 import { ArrowRight } from "@/app/(root)/components/icons";
@@ -112,9 +113,7 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
   // For showcase variant - link to category; for default - link to product
   const cardUrl = variant === "showcase" && categorySlug
     ? `/catalog/${categorySlug}`
-    : categorySlug 
-      ? `/catalog/${categorySlug}/${product.slug}`
-      : `/catalog/${product.slug}`;
+    : productCatalogPath(product);
 
   // Showcase variant - simplified navigation tile for home page
   if (variant === "showcase") {
