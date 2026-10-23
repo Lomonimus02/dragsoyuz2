@@ -18,6 +18,7 @@ import { getGlobalSettings } from "@/app/actions";
 import { SITE_BRAND, DEFAULT_SITE_EMAIL, DEFAULT_SITE_VK_URL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
 import { formatWhatsAppHref } from "@/lib/whatsapp";
+import { contactMapLinks } from "@/lib/contact-map";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,7 @@ export default async function ContactsPage() {
     vkLink: settings?.vkLink?.trim() || DEFAULT_SITE_VK_URL,
     whatsappHref: formatWhatsAppHref(settings?.whatsappNumber),
   };
+  const mapLinks = contactMapLinks(CONTACTS.address);
   return (
     <div className="rk-info-page rk-contacts-v2">
       <div className="container mx-auto">
@@ -123,14 +125,14 @@ export default async function ContactsPage() {
                 <MapPinned />
                 <span>Яндекс Карты</span>
                 <p>{CONTACTS.address}</p>
-                <a href={`https://yandex.ru/maps/?text=${encodeURIComponent(CONTACTS.address)}`}
+                <a href={mapLinks.external}
                   target="_blank" rel="noopener noreferrer" className="rk-button rk-button-outline">
                   Открыть карту<ArrowRight />
                 </a>
               </div>
             ) : (
               <iframe
-                src={`https://yandex.ru/map-widget/v1/?text=${encodeURIComponent(CONTACTS.address)}&z=15`}
+                src={mapLinks.embed}
                 width="100%" height="100%" frameBorder="0" allowFullScreen
                 title={`Яндекс Карта — ${SITE_BRAND}`}
               />
