@@ -15,6 +15,7 @@ import { BenefitsSection } from "./components/BenefitCard";
 import { ReviewsSection } from "./components/ReviewsSection";
 import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
+import { canonicalPageUrl } from "@/lib/seo-routing";
 
 // Отключаем статический пререндеринг (требуется БД)
 export const dynamic = "force-dynamic";
@@ -144,8 +145,8 @@ function OrganizationSchema({ name, phone, email, address, workSchedule, telegra
     "@type": "WebSite",
     "@id": `${baseUrl}/#website`,
     name,
-    alternateName: name === "РадиоКлад" ? ["Радио Клад"] : undefined,
-    url: `${baseUrl}/`,
+    alternateName: name === "РадиоКлад" ? ["Радио Клад", "RadioKlad"] : undefined,
+    url: canonicalPageUrl("/", baseUrl),
     inLanguage: "ru-RU",
     publisher: { "@id": `${baseUrl}/#organization` },
   };

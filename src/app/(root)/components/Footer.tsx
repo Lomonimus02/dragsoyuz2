@@ -112,7 +112,7 @@ export function Footer({ contactInfo }: FooterProps) {
           </div>
 
           {/* Contact Info */}
-          <div>
+          <div data-nosnippet="">
             <h4 className="font-semibold text-lg mb-4">Контакты</h4>
             <div className="flex flex-col gap-3">
               <a
@@ -168,7 +168,7 @@ export function Footer({ contactInfo }: FooterProps) {
           </div>
 
           {/* Working Hours */}
-          <div>
+          <div data-nosnippet="">
             <h4 className="font-semibold text-lg mb-4">Время работы</h4>
             <div className="flex flex-col gap-3">
               <div className="flex items-start gap-3 text-white/60 text-sm">

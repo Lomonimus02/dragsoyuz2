@@ -284,7 +284,7 @@ export function Header({ contactInfo, categories = [] }: HeaderProps) {
             </form>
 
 
-            <div className="rk-header-contact">
+            <div className="rk-header-contact" data-nosnippet="">
               <a href={contacts.phoneHref}>{contacts.phoneNumber}</a>
               <span>{contacts.workSchedule}</span>
             </div>
@@ -321,7 +321,7 @@ export function Header({ contactInfo, categories = [] }: HeaderProps) {
               {item.href === "/catalog" && catalogExpanded && <div className="rk-drawer-categories">{categories.map(category => <Link key={category.slug} href={`/catalog/${category.slug}`} onClick={closeMenu}>{category.name}</Link>)}</div>}
             </div>)}
           </nav>
-          <div className="rk-drawer-contact"><span>Обсудим ваши детали</span><a href={contacts.phoneHref}>{contacts.phoneNumber}</a><p>{contacts.workSchedule}</p>
+          <div className="rk-drawer-contact" data-nosnippet=""><span>Обсудим ваши детали</span><a href={contacts.phoneHref}>{contacts.phoneNumber}</a><p>{contacts.workSchedule}</p>
             <Link href="/contacts" className="rk-drawer-address" onClick={closeMenu}><MapPin className="w-4 h-4" /><span>{contacts.address}</span></Link>
             <div className="rk-socials">
               <a href={contacts.telegramHref} target="_blank" rel="noopener noreferrer" aria-label="Telegram"><TelegramIcon className="w-5 h-5" /></a>

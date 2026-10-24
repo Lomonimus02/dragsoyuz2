@@ -65,7 +65,7 @@ export default async function ContactsPage() {
   return (
     <div className="rk-info-page rk-contacts-v2">
       <div className="container mx-auto">
-        <InfoBreadcrumb current="Контакты" />
+        <InfoBreadcrumb current="Контакты" path="/contacts" />
         <header className="rk-info-intro rk-contact-intro">
           <h1>{seoPageCopy("/contacts")?.h1}</h1>
           <p className="rk-info-lead">
