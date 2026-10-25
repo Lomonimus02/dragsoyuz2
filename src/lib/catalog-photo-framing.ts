@@ -355,29 +355,120 @@ export function analyzeAlphaSubject(pixels: ArrayLike<number>, width: number, he
   };
 }
 
-/** Place a cut-out on a square so its visual mass sits in the centre, with the same padding on the long side. */
-export function placeAlphaCutout(subject: AlphaSubject, maxSide = 1200): CutoutPlacement {
-  const span = Math.max(subject.right - subject.left, subject.bottom - subject.top);
-  const pad = Math.max(8, Math.round(span * 0.08));
-  const halfW = Math.max(subject.massX - subject.left, subject.right - subject.massX) + pad;
-  const halfH = Math.max(subject.massY - subject.top, subject.bottom - subject.massY) + pad;
-  const sw = halfW * 2;
-  const sh = halfH * 2;
-  const content = Math.max(sw, sh);
-  const side = Math.min(maxSide, Math.max(32, Math.round(content)));
-  const scale = side / content;
-  const dw = sw * scale;
-  const dh = sh * scale;
+const FAINT_ALPHA = 48;
+const SOLID_ALPHA = 160;
+const EDGE_RADIUS = 2;
+/** Longest side of the part, as a fraction of the catalog square. */
+const CUTOUT_FILL = 0.725;
+
+/**
+ * Drop faint alpha and detached specks. A second solid object that is not a
+ * speck means the cut-out is not one part, so the caller falls back to server framing.
+ * Returns null when the background was not really separated.
+ */
+export function cleanCutoutAlpha(pixels: ArrayLike<number>, width: number, height: number): Uint8ClampedArray | null {
+  if (width < 2 || height < 2 || pixels.length !== width * height * 4) return null;
+  const out = new Uint8ClampedArray(pixels.length);
+  out.set(pixels);
+  const count = width * height;
+  const solid = new Uint8Array(count);
+  for (let i = 0; i < count; i++) {
+    const alpha = out[i * 4 + 3];
+    if (alpha < FAINT_ALPHA) out[i * 4 + 3] = 0;
+    else if (alpha >= SOLID_ALPHA) solid[i] = 1;
+  }
+
+  const labels = new Int32Array(count);
+  const areas = [0];
+  const stack = new Int32Array(count);
+  let stackTop = 0;
+  let currentLabel = 0;
+  const push = (next: number) => {
+    if (!solid[next] || labels[next]) return;
+    labels[next] = currentLabel;
+    stack[stackTop++] = next;
+  };
+  for (let start = 0; start < count; start++) {
+    if (!solid[start] || labels[start]) continue;
+    currentLabel++;
+    let area = 0;
+    stackTop = 0;
+    push(start);
+    while (stackTop > 0) {
+      const cur = stack[--stackTop];
+      area++;
+      const x = cur % width;
+      const y = (cur - x) / width;
+      if (x > 0) push(cur - 1);
+      if (x + 1 < width) push(cur + 1);
+      if (y > 0) push(cur - width);
+      if (y + 1 < height) push(cur + width);
+    }
+    areas.push(area);
+  }
+
+  let main = 0;
+  let mainArea = 0;
+  for (let label = 1; label < areas.length; label++) {
+    if (areas[label] > mainArea) {
+      mainArea = areas[label];
+      main = label;
+    }
+  }
+  if (mainArea < 24) return null;
+  const noiseArea = Math.max(24, Math.floor(mainArea * 0.08));
+  for (let label = 1; label < areas.length; label++) {
+    if (label !== main && areas[label] >= noiseArea) return null;
+  }
+
+  const near = new Uint8Array(count);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (labels[y * width + x] !== main) continue;
+      const y0 = Math.max(0, y - EDGE_RADIUS);
+      const y1 = Math.min(height - 1, y + EDGE_RADIUS);
+      const x0 = Math.max(0, x - EDGE_RADIUS);
+      const x1 = Math.min(width - 1, x + EDGE_RADIUS);
+      for (let yy = y0; yy <= y1; yy++) {
+        const row = yy * width;
+        for (let xx = x0; xx <= x1; xx++) near[row + xx] = 1;
+      }
+    }
+  }
+
+  let transparent = 0;
+  for (let i = 0; i < count; i++) {
+    const alpha = out[i * 4 + 3];
+    const keep = labels[i] === main || (near[i] && labels[i] === 0 && alpha >= FAINT_ALPHA);
+    if (!keep) out[i * 4 + 3] = 0;
+    if (out[i * 4 + 3] < 16) transparent++;
+  }
+  if (transparent / count < 0.05) return null;
+  return out;
+}
+
+/** Place a cut-out on the catalog square. Visual mass stays centred; the long side stays near 72% of the square. */
+export function placeAlphaCutout(subject: AlphaSubject, side = 1200): CutoutPlacement {
+  const sidePx = Math.max(32, Math.round(side));
+  const bboxW = Math.max(1, subject.right - subject.left);
+  const bboxH = Math.max(1, subject.bottom - subject.top);
+  const longest = Math.max(bboxW, bboxH);
+  const extentW = Math.max(subject.massX - subject.left, subject.right - subject.massX);
+  const extentH = Math.max(subject.massY - subject.top, subject.bottom - subject.massY);
+  let scale = (CUTOUT_FILL * sidePx) / longest;
+  if (extentW > 0) scale = Math.min(scale, (sidePx / 2) / extentW);
+  if (extentH > 0) scale = Math.min(scale, (sidePx / 2) / extentH);
+  const half = sidePx / (2 * scale);
   return {
-    sx: subject.massX - halfW,
-    sy: subject.massY - halfH,
-    sw,
-    sh,
-    side,
-    dx: (side - dw) / 2,
-    dy: (side - dh) / 2,
-    dw,
-    dh,
+    sx: subject.massX - half,
+    sy: subject.massY - half,
+    sw: half * 2,
+    sh: half * 2,
+    side: sidePx,
+    dx: 0,
+    dy: 0,
+    dw: sidePx,
+    dh: sidePx,
   };
 }
 

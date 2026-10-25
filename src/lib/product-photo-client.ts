@@ -1,9 +1,9 @@
 "use client";
 
-import { analyzeAlphaSubject, placeAlphaCutout } from "./catalog-photo-framing";
+import { analyzeAlphaSubject, cleanCutoutAlpha, placeAlphaCutout } from "./catalog-photo-framing";
 import { catalogWatermarkSvg } from "./catalog-watermark-svg";
 
-/** Quantized ISNet (~42 MB) plus the ONNX wasm (~11 MB), cached by the browser. */
+/** ISNet fp16 (~84 MB) plus the ONNX wasm (~11 MB), cached by the browser. */
 export const PRODUCT_BACKGROUND_MODEL_URL =
   "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/";
 
@@ -43,7 +43,7 @@ export async function removeProductBackground(
   signal?.throwIfAborted();
   const cutout = await removeBackground(blob, {
     publicPath: PRODUCT_BACKGROUND_MODEL_URL,
-    model: "isnet_quint8",
+    model: "isnet_fp16",
     device: "cpu",
     output: { format: "image/png", quality: 0.9 },
     progress: (key: string, current: number, total: number) => {
@@ -68,8 +68,12 @@ export async function composeCatalogCard(cutout: Blob): Promise<{ previewUrl: st
     const analysisContext = analysisCanvas.getContext("2d", { willReadFrequently: true });
     if (!analysisContext) throw new Error("Не удалось собрать карточку фото.");
     analysisContext.drawImage(bitmap, 0, 0);
-    const pixels = analysisContext.getImageData(0, 0, bitmap.width, bitmap.height).data;
-    const subject = analyzeAlphaSubject(pixels, bitmap.width, bitmap.height);
+    const imageData = analysisContext.getImageData(0, 0, bitmap.width, bitmap.height);
+    const cleaned = cleanCutoutAlpha(imageData.data, bitmap.width, bitmap.height);
+    if (!cleaned) throw new Error("Фон не отделился от детали.");
+    imageData.data.set(cleaned);
+    analysisContext.putImageData(imageData, 0, 0);
+    const subject = analyzeAlphaSubject(cleaned, bitmap.width, bitmap.height);
     if (!subject || subject.transparentRatio < 0.05) throw new Error("Фон не отделился от детали.");
     const place = placeAlphaCutout(subject);
     const card = document.createElement("canvas");
@@ -83,7 +87,13 @@ export async function composeCatalogCard(cutout: Blob): Promise<{ previewUrl: st
     context.shadowBlur = Math.max(2, place.side * 0.028);
     context.shadowOffsetY = Math.max(1, place.side * 0.012);
     const scale = place.sw > 0 ? place.dw / place.sw : 1;
-    context.drawImage(bitmap, place.dx - place.sx * scale, place.dy - place.sy * scale, bitmap.width * scale, bitmap.height * scale);
+    context.drawImage(
+      analysisCanvas,
+      place.dx - place.sx * scale,
+      place.dy - place.sy * scale,
+      bitmap.width * scale,
+      bitmap.height * scale,
+    );
     context.shadowColor = "transparent";
     context.shadowBlur = 0;
     context.shadowOffsetY = 0;

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyzeAlphaSubject, findPhotoBounds, photoTransform, placeAlphaCutout } from "./catalog-photo-framing";
+import { analyzeAlphaSubject, cleanCutoutAlpha, findPhotoBounds, photoTransform, placeAlphaCutout } from "./catalog-photo-framing";
 
 function photo(width: number, height: number, background = 255) {
   const pixels = new Uint8ClampedArray(width * height * 4);
@@ -117,9 +117,86 @@ test("alpha cut-out is centred on its visual mass with padding", () => {
   const scale = place.dw / place.sw;
   const mappedX = place.dx - place.sx * scale + subject!.massX * scale;
   const mappedY = place.dy - place.sy * scale + subject!.massY * scale;
+  assert.equal(place.side, 1200);
   assert.ok(Math.abs(mappedX - place.side / 2) < 0.6);
   assert.ok(Math.abs(mappedY - place.side / 2) < 0.6);
-  assert.ok(place.side > subject!.right - subject!.left);
+  const longest = Math.max(
+    (subject!.right - subject!.left) * scale,
+    (subject!.bottom - subject!.top) * scale,
+  );
+  assert.ok(longest / place.side >= 0.7 && longest / place.side <= 0.75);
+});
+
+test("a small cut-out is scaled up to the catalog square without clipping an off-centre mass", () => {
+  const width = 1440;
+  const height = 2560;
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  for (let y = 400; y < 860; y++) for (let x = 200; x < 420; x++) {
+    const i = (y * width + x) * 4;
+    pixels[i + 3] = x < 260 ? 255 : 40;
+  }
+  const subject = analyzeAlphaSubject(pixels, width, height)!;
+  const place = placeAlphaCutout(subject);
+  const scale = place.dw / place.sw;
+  for (const [x, y] of [[subject.left, subject.top], [subject.right, subject.bottom]]) {
+    const dx = place.dx - place.sx * scale + x * scale;
+    const dy = place.dy - place.sy * scale + y * scale;
+    assert.ok(dx >= -0.6 && dx <= place.side + 0.6);
+    assert.ok(dy >= -0.6 && dy <= place.side + 0.6);
+  }
+  const longest = Math.max((subject.right - subject.left) * scale, (subject.bottom - subject.top) * scale);
+  assert.equal(place.side, 1200);
+  assert.ok(longest / place.side <= 0.75);
+});
+
+function paint(pixels: Uint8ClampedArray, width: number, x: number, y: number, w: number, h: number, alpha: number) {
+  for (let row = y; row < y + h; row++) for (let col = x; col < x + w; col++) {
+    const i = (row * width + col) * 4;
+    pixels[i] = pixels[i + 1] = pixels[i + 2] = 180;
+    pixels[i + 3] = alpha;
+  }
+}
+
+test("faint and disconnected shadow noise is removed; a second solid object is rejected", () => {
+  const width = 120;
+  const height = 80;
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  paint(pixels, width, 20, 20, 40, 30, 255);
+  paint(pixels, width, 70, 10, 12, 8, 30);
+  paint(pixels, width, 90, 50, 6, 6, 110);
+  const cleaned = cleanCutoutAlpha(pixels, width, height);
+  assert.ok(cleaned);
+  const opaque = (x: number, y: number) => cleaned![(y * width + x) * 4 + 3];
+  assert.equal(opaque(30, 30), 255);
+  assert.equal(opaque(75, 14), 0);
+  assert.equal(opaque(92, 52), 0);
+
+  const rival = new Uint8ClampedArray(pixels);
+  paint(rival, width, 80, 40, 20, 16, 255);
+  assert.equal(cleanCutoutAlpha(rival, width, height), null);
+
+  const cloud = new Uint8ClampedArray(width * height * 4);
+  paint(cloud, width, 10, 10, 80, 50, 100);
+  assert.equal(cleanCutoutAlpha(cloud, width, height), null);
+
+  const solid = new Uint8ClampedArray(width * height * 4);
+  solid.fill(255);
+  assert.equal(cleanCutoutAlpha(solid, width, height), null);
+
+  const blotchy = new Uint8ClampedArray(width * height * 4);
+  paint(blotchy, width, 0, 0, width, height, 90);
+  paint(blotchy, width, 20, 20, 40, 30, 255);
+  paint(blotchy, width, 18, 20, 2, 30, 120);
+  const cleanedBlotch = cleanCutoutAlpha(blotchy, width, height);
+  assert.ok(cleanedBlotch);
+  assert.equal(cleanedBlotch![(30 * width + 30) * 4 + 3], 255);
+  assert.equal(cleanedBlotch![(25 * width + 18) * 4 + 3], 120);
+  assert.equal(cleanedBlotch![(10 * width + 5) * 4 + 3], 0);
+
+  const opaqueNoise = new Uint8ClampedArray(width * height * 4);
+  paint(opaqueNoise, width, 20, 20, 40, 30, 255);
+  paint(opaqueNoise, width, 70, 15, 30, 25, 220);
+  assert.equal(cleanCutoutAlpha(opaqueNoise, width, height), null);
 });
 
 test("fits a part on a slightly grey white background without mistaking the gradient for the part", () => {

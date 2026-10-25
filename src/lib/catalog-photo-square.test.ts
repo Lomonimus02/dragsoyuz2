@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import sharp from "sharp";
 import { extendPhotoToSquare } from "./catalog-photo-square";
 import { createWatermarkedPhoto } from "./catalog-photo-watermark";
+import { catalogWatermarkSvg } from "./catalog-watermark-svg";
 
 test("square padding preserves every source pixel, including thin edge leads, without enlargement", async () => {
   for (const [width, height] of [[103, 62], [62, 103], [103, 103]]) {
@@ -35,6 +36,25 @@ test("watermark covers added margins with the same pattern regardless of photo p
     samples.push(topMargin);
   }
   assert.deepEqual(samples[0],samples[1],"watermark size and origin depend on the final square");
+});
+
+test("catalog watermark stays a light repeat instead of a dense curtain", async () => {
+  const side = 1200;
+  const output = await sharp({ create: { width: side, height: side, channels: 3, background: "white" } })
+    .composite([{ input: Buffer.from(catalogWatermarkSvg(side, side)) }])
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  let dark = 0;
+  let min = 255;
+  for (let i = 0; i < output.length; i += 3) {
+    if (output[i] < min) min = output[i];
+    if (output[i] < 250) dark++;
+  }
+  const ratio = dark / (side * side);
+  assert.ok(ratio > 0.02, "mark is still visible");
+  assert.ok(ratio < 0.09, "mark does not cover the card");
+  assert.ok(min >= 240, "mark stays light grey");
 });
 
 test("small photos keep their dimensions; only oversized photos are reduced before padding", async () => {
