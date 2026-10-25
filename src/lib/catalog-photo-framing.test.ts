@@ -147,7 +147,7 @@ test("a small cut-out is scaled up to the catalog square without clipping an off
   }
   const longest = Math.max((subject.right - subject.left) * scale, (subject.bottom - subject.top) * scale);
   assert.equal(place.side, 1200);
-  assert.ok(longest / place.side <= 0.92);
+  assert.ok(longest / place.side >= 0.89 && longest / place.side <= 0.92);
 });
 
 function paint(pixels: Uint8ClampedArray, width: number, x: number, y: number, w: number, h: number, alpha: number) {

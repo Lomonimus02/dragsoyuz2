@@ -460,16 +460,20 @@ export function placeAlphaCutout(subject: AlphaSubject, side = 1200): CutoutPlac
   const bboxW = Math.max(1, subject.right - subject.left);
   const bboxH = Math.max(1, subject.bottom - subject.top);
   const longest = Math.max(bboxW, bboxH);
-  const extentW = Math.max(subject.massX - subject.left, subject.right - subject.massX);
-  const extentH = Math.max(subject.massY - subject.top, subject.bottom - subject.massY);
-  let scale = (CUTOUT_FILL * sidePx) / longest;
-  const reach = sidePx * (0.5 - CUTOUT_SHADOW_PAD);
-  if (extentW > 0) scale = Math.min(scale, reach / extentW);
-  if (extentH > 0) scale = Math.min(scale, reach / extentH);
+  const scale = (CUTOUT_FILL * sidePx) / longest;
+  const pad = (sidePx * CUTOUT_SHADOW_PAD) / scale;
   const half = sidePx / (2 * scale);
+  // Centre on the visual mass, then slide just enough to keep the bbox (and shadow) inside.
+  const clampOrigin = (mass: number, lo: number, hi: number) => {
+    const min = hi + pad - 2 * half;
+    const max = lo - pad;
+    return min > max ? (min + max) / 2 : Math.min(max, Math.max(min, mass - half));
+  };
+  const sx = clampOrigin(subject.massX, subject.left, subject.right);
+  const sy = clampOrigin(subject.massY, subject.top, subject.bottom);
   return {
-    sx: subject.massX - half,
-    sy: subject.massY - half,
+    sx,
+    sy,
     sw: half * 2,
     sh: half * 2,
     side: sidePx,
