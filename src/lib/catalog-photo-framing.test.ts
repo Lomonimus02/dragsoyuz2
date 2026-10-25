@@ -157,7 +157,7 @@ function paint(pixels: Uint8ClampedArray, width: number, x: number, y: number, w
   }
 }
 
-test("faint and disconnected shadow noise is removed; a second solid object is rejected", () => {
+test("faint and disconnected shadow noise is removed; several solid parts are all kept", () => {
   const width = 120;
   const height = 80;
   const pixels = new Uint8ClampedArray(width * height * 4);
@@ -173,7 +173,18 @@ test("faint and disconnected shadow noise is removed; a second solid object is r
 
   const rival = new Uint8ClampedArray(pixels);
   paint(rival, width, 80, 40, 20, 16, 255);
-  assert.equal(cleanCutoutAlpha(rival, width, height), null);
+  paint(rival, width, 5, 70, 3, 3, 255);
+  const several = cleanCutoutAlpha(rival, width, height);
+  assert.ok(several);
+  assert.equal(several![(30 * width + 30) * 4 + 3], 255);
+  assert.equal(several![(48 * width + 90) * 4 + 3], 255);
+  assert.equal(several![(71 * width + 6) * 4 + 3], 0, "a tiny solid speck is still dropped");
+  const group = analyzeAlphaSubject(several!, width, height);
+  assert.ok(group);
+  assert.equal(group!.left, 20);
+  assert.equal(group!.right, 100);
+  assert.equal(group!.top, 20);
+  assert.equal(group!.bottom, 56);
 
   const cloud = new Uint8ClampedArray(width * height * 4);
   paint(cloud, width, 10, 10, 80, 50, 100);
@@ -196,7 +207,7 @@ test("faint and disconnected shadow noise is removed; a second solid object is r
   const opaqueNoise = new Uint8ClampedArray(width * height * 4);
   paint(opaqueNoise, width, 20, 20, 40, 30, 255);
   paint(opaqueNoise, width, 70, 15, 30, 25, 220);
-  assert.equal(cleanCutoutAlpha(opaqueNoise, width, height), null);
+  assert.equal(cleanCutoutAlpha(opaqueNoise, width, height)![(20 * width + 80) * 4 + 3], 220);
 });
 
 test("fits a part on a slightly grey white background without mistaking the gradient for the part", () => {

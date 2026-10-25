@@ -362,8 +362,8 @@ const EDGE_RADIUS = 2;
 const CUTOUT_FILL = 0.725;
 
 /**
- * Drop faint alpha and detached specks. A second solid object that is not a
- * speck means the cut-out is not one part, so the caller falls back to server framing.
+ * Drop faint alpha and detached specks. Every solid object of at least 8% of the
+ * largest one is kept, so several parts in one photo stay together.
  * Returns null when the background was not really separated.
  */
 export function cleanCutoutAlpha(pixels: ArrayLike<number>, width: number, height: number): Uint8ClampedArray | null {
@@ -417,14 +417,16 @@ export function cleanCutoutAlpha(pixels: ArrayLike<number>, width: number, heigh
   }
   if (mainArea < 24) return null;
   const noiseArea = Math.max(24, Math.floor(mainArea * 0.08));
+  // Several parts may lie in one photo: keep every solid component that is not a speck.
+  const kept = new Uint8Array(areas.length);
   for (let label = 1; label < areas.length; label++) {
-    if (label !== main && areas[label] >= noiseArea) return null;
+    if (label === main || areas[label] >= noiseArea) kept[label] = 1;
   }
 
   const near = new Uint8Array(count);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (labels[y * width + x] !== main) continue;
+      if (!kept[labels[y * width + x]]) continue;
       const y0 = Math.max(0, y - EDGE_RADIUS);
       const y1 = Math.min(height - 1, y + EDGE_RADIUS);
       const x0 = Math.max(0, x - EDGE_RADIUS);
@@ -439,7 +441,7 @@ export function cleanCutoutAlpha(pixels: ArrayLike<number>, width: number, heigh
   let transparent = 0;
   for (let i = 0; i < count; i++) {
     const alpha = out[i * 4 + 3];
-    const keep = labels[i] === main || (near[i] && labels[i] === 0 && alpha >= FAINT_ALPHA);
+    const keep = kept[labels[i]] === 1 || (near[i] && labels[i] === 0 && alpha >= FAINT_ALPHA);
     if (!keep) out[i * 4 + 3] = 0;
     if (out[i * 4 + 3] < 16) transparent++;
   }
