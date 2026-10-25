@@ -8,6 +8,7 @@ import { ChevronRight, Package, ArrowLeft } from "@/app/(root)/components/icons"
 import { ProductCardCompact } from "../../components";
 import { CategoryBanners } from "../../components/CategoryBanner";
 import type { CategoryBannerConfig } from "@/lib/category-banner";
+import { CategoryPurchaseGuide } from "../../components/CategoryPurchaseGuide";
 import type { ProductWithPrice } from "@/app/actions";
 
 interface CategoryPageClientProps {
@@ -76,7 +77,7 @@ export function CategoryPageClient({
           <div className="rk-category-hero-grid">
             <div className="rk-category-hero-copy">
               <h1>{category.name}</h1>
-              <p>Товаров в разделе: {total}</p>
+              <p>Скупка в Санкт-Петербурге. Позиций в каталоге: {total}</p>
               <Link href="/catalog" className="rk-category-back">
                 <ArrowLeft className="w-4 h-4" /> Все категории
               </Link>
@@ -140,13 +141,14 @@ export function CategoryPageClient({
                 >
                   <ProductCardCompact
                     product={product}
-                    categorySlug={category.slug}
+                    categorySlug={product.categorySlug}
                   />
                 </div>
               );
             })}
           </div>
         )}
+        <CategoryPurchaseGuide name={category.name} slug={category.slug} hasGuide={category.infoPageEnabled} />
       </div>
 
       <style jsx>{`

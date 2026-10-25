@@ -30,8 +30,8 @@ export async function generateMetadata({
   const canonicalUrl = `${BASE_URL}/catalog/${slug}`;
 
   return pageMetadata({
-    title: `${category.name} — цены скупки в Санкт-Петербурге | ${SITE_BRAND}`,
-    description: `Скупаем ${category.name} по высоким ценам в Санкт-Петербурге. Оценка по фото, скупаем в любом объеме, оплата сразу, честное взвешивание. Компания ${SITE_BRAND} в СПб.`,
+    title: `${category.name}: цены скупки в Санкт-Петербурге | ${SITE_BRAND}`,
+    description: `${category.name}: каталог с ценами скупки в Санкт-Петербурге. Сравните маркировку, исполнение и единицы расчёта. Подготовка к оценке по фото и условия передачи в ${SITE_BRAND}.`,
     path: canonicalUrl,
   });
 }

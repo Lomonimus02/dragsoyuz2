@@ -97,14 +97,14 @@ function ModificationsTableCompact({
   );
 }
 
-export function ProductCardCompact({ product, categorySlug, contactInfo }: ProductCardCompactProps) {
+export function ProductCardCompact({ product, contactInfo }: ProductCardCompactProps) {
   const hasNewPrice = product.priceNew !== null;
   const hasUsedPrice = product.priceUsed !== null;
   
   // Стейт для модального окна с изображением
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
-  const productUrl = `/catalog/${categorySlug}/${product.slug}`;
+  const productUrl = `/catalog/${product.categorySlug}/${product.slug}`;
 
   return (
     <>

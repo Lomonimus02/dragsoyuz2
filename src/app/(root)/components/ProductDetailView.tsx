@@ -6,7 +6,7 @@ import { SellModal } from "./SellModal";
 import type { SellModalContactInfo } from "./SellModal";
 import { CalculatorModal } from "./CalculatorModal";
 import { ProductMetalContent } from "./ProductMetalContent";
-import { productPurchaseCopy } from "@/lib/product-purchase-copy";
+import { catalogPurchaseCopy } from "@/lib/catalog-content";
 import { SITE_BRAND } from "@/lib/site";
 
 function getPriceUnitSuffix(unitType: UnitType): string {
@@ -50,7 +50,7 @@ function PriceFootnote({
       <Info className="w-3.5 h-3.5 shrink-0" />
       {isPriceOnRequest
         ? "Свяжитесь с нами для уточнения стоимости"
-        : "Цены рассчитаны по актуальному курсу драгметаллов"}
+        : "Цена из каталога. Итоговая сумма уточняется после проверки деталей"}
     </p>
   );
 }
@@ -186,7 +186,7 @@ interface ProductDetailViewProps {
   categoryName: string;
   categorySlug: string;
   sellContactInfo?: SellModalContactInfo;
-  purchaseCopy?: ReturnType<typeof productPurchaseCopy>;
+  purchaseCopy?: ReturnType<typeof catalogPurchaseCopy>;
 }
 
 export function ProductDetailView({
@@ -205,13 +205,13 @@ export function ProductDetailView({
       product.displayContentTantalum > 0);
 
   const hasPageDescription = !!product.pageDescription;
-  const purchaseCopy = suppliedCopy ?? productPurchaseCopy(product, SITE_BRAND);
+  const purchaseCopy = suppliedCopy ?? catalogPurchaseCopy(product, SITE_BRAND);
 
   const howToSellSteps = [
-    "Соберите все детали данного типа",
-    "Свяжитесь с нами по телефону или форме обратной связи",
-    "Привезите детали",
-    "Получите оплату сразу после оценки",
+    "Сравните маркировку и исполнение с описанием карточки",
+    "Пришлите фотографии и укажите количество или вес",
+    "Согласуйте оценку и способ передачи: лично или отправлением",
+    "Передайте детали для проверки и окончательного расчёта",
   ];
 
   return (
@@ -256,7 +256,7 @@ export function ProductDetailView({
               {categoryName}
             </Link>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--gray-900)] leading-tight">
-              {purchaseCopy.title}
+              {product.name}
             </h1>
           </div>
 
@@ -342,6 +342,7 @@ export function ProductDetailView({
               </li>
             ))}
           </ol>
+          <p className="mt-4 flex flex-wrap gap-4 text-sm font-medium text-[var(--primary-700)]"><Link href="/how-to-sell">Порядок приёма →</Link><Link href="/postal">Отправка почтой →</Link><Link href="/contacts">Контакты →</Link></p>
         </section>
       </div>
     </div>

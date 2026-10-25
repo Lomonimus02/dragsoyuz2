@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "@/app/(root)/components/icons";
 import {
@@ -15,23 +15,17 @@ import { ProductCard, ProductGridSkeleton } from "../../../components";
 import { ProductDetailView } from "../../../components/ProductDetailView";
 import { buildSellContactInfo, SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
-import { productPurchaseCopy } from "@/lib/product-purchase-copy";
+import { catalogPurchaseCopy, productCatalogPath, productCatalogSchema } from "@/lib/catalog-content";
+import type { ProductWithPrice } from "@/app/actions";
 
 interface ProductPageProps {
   params: Promise<{ slug: string; productSlug: string }>;
 }
 
-function getDisplayPrice(product: {
-  priceNew: number | null;
-  priceUsed: number | null;
-}): number {
-  return product.priceNew ?? product.priceUsed ?? 0;
-}
-
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const { slug: categorySlug, productSlug } = await params;
+  const { productSlug } = await params;
   const result = await getProductBySlug(productSlug);
 
   if (!result.success) {
@@ -41,9 +35,9 @@ export async function generateMetadata({
   }
 
   const product = result.data;
-  const canonicalUrl = `${BASE_URL}/catalog/${categorySlug}/${productSlug}`;
+  const canonicalUrl = BASE_URL + productCatalogPath(product);
   const copyCategory = await getCategoryBySlug(product.categorySlug);
-  const purchaseCopy = productPurchaseCopy(product, SITE_BRAND, copyCategory.success ? copyCategory.data.purchaseCopySettings : undefined);
+  const purchaseCopy = catalogPurchaseCopy(product, SITE_BRAND, copyCategory.success ? copyCategory.data.purchaseCopySettings : undefined);
 
   const imageUrl = product.image
     ? product.image.startsWith("http")
@@ -53,56 +47,14 @@ export async function generateMetadata({
 
   return pageMetadata({
     title: purchaseCopy.title,
-    description: product.seoDescription || purchaseCopy.metaDescription,
+    description: purchaseCopy.metaDescription,
     path: canonicalUrl,
     image: imageUrl ? { url: imageUrl, alt: product.name } : undefined,
   });
 }
 
-interface ProductSchemaProps {
-  name: string;
-  description?: string | null;
-  image?: string | null;
-  price: number;
-  categorySlug: string;
-  productSlug: string;
-}
-
-function ProductSchema({
-  name,
-  description,
-  image,
-  price,
-  categorySlug,
-  productSlug,
-}: ProductSchemaProps) {
-  const imageUrl = image
-    ? image.startsWith("http")
-      ? image
-      : `${BASE_URL}${image}`
-    : undefined;
-
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name,
-    ...(description && { description }),
-    ...(imageUrl && { image: imageUrl }),
-    url: `${BASE_URL}/catalog/${categorySlug}/${productSlug}`,
-    offers: {
-      "@type": "Offer",
-      price: price.toFixed(2),
-      priceCurrency: "RUB",
-      availability: "https://schema.org/InStock",
-    },
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
-    />
-  );
+function ProductSchema({ product, description }: { product: ProductWithPrice; description: string }) {
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productCatalogSchema(product, BASE_URL, description)).replace(/</g, "\\u003c") }} />;
 }
 
 interface BreadcrumbSchemaProps {
@@ -160,11 +112,9 @@ function BreadcrumbSchema({
 async function RelatedProducts({
   categoryId,
   currentId,
-  categorySlug,
 }: {
   categoryId: string;
   currentId: string;
-  categorySlug: string;
 }) {
   const result = await getProducts({ categoryId, limit: 5 });
 
@@ -188,7 +138,7 @@ async function RelatedProducts({
           <ProductCard
             key={product.id}
             product={product}
-            categorySlug={categorySlug}
+            categorySlug={product.categorySlug}
           />
         ))}
       </div>
@@ -199,20 +149,16 @@ async function RelatedProducts({
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug: categorySlug, productSlug } = await params;
 
-  const categoryResult = await getCategoryBySlug(categorySlug);
-  if (!categoryResult.success) {
-    notFound();
-  }
-  const category = categoryResult.data;
-
   const result = await getProductBySlug(productSlug);
-  if (!result.success) {
-    notFound();
-  }
-
+  if (!result.success) notFound();
   const product = result.data;
-  const displayPrice = getDisplayPrice(product);
-  const purchaseCopy = productPurchaseCopy(product, SITE_BRAND, category.purchaseCopySettings);
+  if (categorySlug !== product.categorySlug) {
+    permanentRedirect(productCatalogPath(product));
+  }
+  const categoryResult = await getCategoryBySlug(product.categorySlug);
+  if (!categoryResult.success) notFound();
+  const category = categoryResult.data;
+  const purchaseCopy = catalogPurchaseCopy(product, SITE_BRAND, category.purchaseCopySettings);
 
   const settingsResult = await getGlobalSettings();
   const settings = settingsResult.success ? settingsResult.data : null;
@@ -220,14 +166,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      <ProductSchema
-        name={product.name}
-        description={[purchaseCopy.schemaDescription, product.pageDescription].filter(Boolean).join("\n\n")}
-        image={product.image}
-        price={displayPrice}
-        categorySlug={categorySlug}
-        productSlug={productSlug}
-      />
+      <ProductSchema product={product} description={[purchaseCopy.schemaDescription, product.pageDescription].filter(Boolean).join("\n\n")} />
       <BreadcrumbSchema
         categoryName={category.name}
         categorySlug={categorySlug}
@@ -272,7 +211,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
           <ProductDetailView
-        purchaseCopy={purchaseCopy}
+            purchaseCopy={purchaseCopy}
             product={product}
             categoryName={category.name}
             categorySlug={categorySlug}
@@ -283,7 +222,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <RelatedProducts
               categoryId={product.categoryId}
               currentId={product.id}
-              categorySlug={categorySlug}
             />
           </Suspense>
         </div>

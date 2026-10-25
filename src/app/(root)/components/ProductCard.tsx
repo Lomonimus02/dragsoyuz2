@@ -112,9 +112,7 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
   // For showcase variant - link to category; for default - link to product
   const cardUrl = variant === "showcase" && categorySlug
     ? `/catalog/${categorySlug}`
-    : categorySlug 
-      ? `/catalog/${categorySlug}/${product.slug}`
-      : `/catalog/${product.slug}`;
+    : `/catalog/${product.categorySlug}/${product.slug}`;
 
   // Showcase variant - simplified navigation tile for home page
   if (variant === "showcase") {
