@@ -3,9 +3,16 @@
 import { analyzeAlphaSubject, cleanCutoutAlpha, placeAlphaCutout } from "./catalog-photo-framing";
 import { catalogWatermarkSvg } from "./catalog-watermark-svg";
 
-/** ISNet fp16 (~84 MB) plus the ONNX wasm (~11 MB), cached by the browser. */
-export const PRODUCT_BACKGROUND_MODEL_URL =
-  "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/";
+/**
+ * ISNet fp16 (~84 MB) plus the ONNX wasm (~11 MB), cached by the browser.
+ * Served from our own origin (nginx alias to /srv/radioklad/shared/imgly) so mobile
+ * networks that cannot reach the imgly CDN still work.
+ */
+export const PRODUCT_BACKGROUND_MODEL_PATH = "/imgly/1.7.0/dist/";
+
+function productBackgroundModelUrl(): string {
+  return new URL(PRODUCT_BACKGROUND_MODEL_PATH, window.location.origin).href;
+}
 
 function canvasBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob | null> {
   return new Promise(resolve => canvas.toBlob(blob => resolve(blob), type, quality));
@@ -42,7 +49,7 @@ export async function removeProductBackground(
   }
   signal?.throwIfAborted();
   const cutout = await removeBackground(blob, {
-    publicPath: PRODUCT_BACKGROUND_MODEL_URL,
+    publicPath: productBackgroundModelUrl(),
     model: "isnet_fp16",
     device: "cpu",
     output: { format: "image/png", quality: 0.9 },
