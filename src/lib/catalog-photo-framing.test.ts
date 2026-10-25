@@ -124,7 +124,7 @@ test("alpha cut-out is centred on its visual mass with padding", () => {
     (subject!.right - subject!.left) * scale,
     (subject!.bottom - subject!.top) * scale,
   );
-  assert.ok(longest / place.side >= 0.7 && longest / place.side <= 0.75);
+  assert.ok(longest / place.side >= 0.89 && longest / place.side <= 0.92);
 });
 
 test("a small cut-out is scaled up to the catalog square without clipping an off-centre mass", () => {
@@ -141,12 +141,13 @@ test("a small cut-out is scaled up to the catalog square without clipping an off
   for (const [x, y] of [[subject.left, subject.top], [subject.right, subject.bottom]]) {
     const dx = place.dx - place.sx * scale + x * scale;
     const dy = place.dy - place.sy * scale + y * scale;
-    assert.ok(dx >= -0.6 && dx <= place.side + 0.6);
-    assert.ok(dy >= -0.6 && dy <= place.side + 0.6);
+    const pad = place.side * 0.045 - 0.6;
+    assert.ok(dx >= pad && dx <= place.side - pad);
+    assert.ok(dy >= pad && dy <= place.side - pad);
   }
   const longest = Math.max((subject.right - subject.left) * scale, (subject.bottom - subject.top) * scale);
   assert.equal(place.side, 1200);
-  assert.ok(longest / place.side <= 0.75);
+  assert.ok(longest / place.side <= 0.92);
 });
 
 function paint(pixels: Uint8ClampedArray, width: number, x: number, y: number, w: number, h: number, alpha: number) {

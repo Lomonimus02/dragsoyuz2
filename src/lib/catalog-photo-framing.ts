@@ -359,7 +359,12 @@ const FAINT_ALPHA = 48;
 const SOLID_ALPHA = 160;
 const EDGE_RADIUS = 2;
 /** Longest side of the part, as a fraction of the catalog square. */
-const CUTOUT_FILL = 0.725;
+export const CUTOUT_FILL = 0.91;
+/**
+ * Clear margin kept around the part so the card's soft shadow
+ * (blur 2.8% + drop 1.2% of the side) never touches the frame edge.
+ */
+export const CUTOUT_SHADOW_PAD = 0.045;
 
 /**
  * Drop faint alpha and detached specks. Every solid object of at least 8% of the
@@ -449,7 +454,7 @@ export function cleanCutoutAlpha(pixels: ArrayLike<number>, width: number, heigh
   return out;
 }
 
-/** Place a cut-out on the catalog square. Visual mass stays centred; the long side stays near 72% of the square. */
+/** Place a cut-out on the catalog square. Visual mass stays centred; the long side fills about 91% of the square, leaving room for the shadow. */
 export function placeAlphaCutout(subject: AlphaSubject, side = 1200): CutoutPlacement {
   const sidePx = Math.max(32, Math.round(side));
   const bboxW = Math.max(1, subject.right - subject.left);
@@ -458,8 +463,9 @@ export function placeAlphaCutout(subject: AlphaSubject, side = 1200): CutoutPlac
   const extentW = Math.max(subject.massX - subject.left, subject.right - subject.massX);
   const extentH = Math.max(subject.massY - subject.top, subject.bottom - subject.massY);
   let scale = (CUTOUT_FILL * sidePx) / longest;
-  if (extentW > 0) scale = Math.min(scale, (sidePx / 2) / extentW);
-  if (extentH > 0) scale = Math.min(scale, (sidePx / 2) / extentH);
+  const reach = sidePx * (0.5 - CUTOUT_SHADOW_PAD);
+  if (extentW > 0) scale = Math.min(scale, reach / extentW);
+  if (extentH > 0) scale = Math.min(scale, reach / extentH);
   const half = sidePx / (2 * scale);
   return {
     sx: subject.massX - half,
