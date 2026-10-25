@@ -1,6 +1,7 @@
 "use client";
 
-import { uploadPhoto } from "@/lib/upload-photo";
+import { uploadPhoto, preparePhotoForUpload } from "@/lib/upload-photo";
+import { composeCatalogCard, removeProductBackground } from "@/lib/product-photo-client";
 
 import { useState, useTransition, useRef, useMemo, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -143,10 +144,23 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
   const [imagePreview, setImagePreview] = useState(product?.image || "");
   const [imageUrl, setImageUrl] = useState(product?.image || "");
   const [isUploading, setIsUploading] = useState(false);
+  const [cutOutBackground, setCutOutBackground] = useState(true);
+  const [photoStatus, setPhotoStatus] = useState("");
+  const [pendingPhoto, setPendingPhoto] = useState<{
+    previewUrl: string;
+    upload: Blob | null;
+    serverBlob: Blob;
+    note: string;
+  } | null>(null);
   const [hasDescription, setHasDescription] = useState(!!(product?.description));
   const [hasPageDescription, setHasPageDescription] = useState(!!(product?.pageDescription));
   const [pageDescriptionDraft, setPageDescriptionDraft] = useState(() => parseProductDescription(product?.pageDescription));
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoTask = useRef<AbortController | null>(null);
+
+  useEffect(() => () => {
+    photoTask.current?.abort();
+  }, []);
 
   const isEditing = !!product;
   // Если передан defaultCategoryId - категория заблокирована
@@ -383,51 +397,115 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
     }
   };
 
-  // Загрузка изображения
+  const clearPendingPhoto = () => {
+    setPendingPhoto(current => {
+      if (current?.previewUrl.startsWith("blob:")) URL.revokeObjectURL(current.previewUrl);
+      return null;
+    });
+    setPhotoStatus("");
+  };
+
+  // Загрузка изображения: сначала предпросмотр, на сервер — только после подтверждения.
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Показываем превью сразу
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
+    photoTask.current?.abort();
+    const controller = new AbortController();
+    photoTask.current = controller;
+    clearPendingPhoto();
     setIsUploading(true);
+    setPhotoStatus("Подготовка фотографии…");
+    const localPreview = URL.createObjectURL(file);
+    setImagePreview(localPreview);
 
+    let ownedPreview: string | null = null;
     try {
-      const url = await uploadPhoto(file);
-      const result = { success: true, url, error: "" };
-
-      if (result.success) {
-        setImageUrl(result.url);
-        setImagePreview(result.url);
-        setValue("image", result.url);
-        setNotification({
-          type: "success",
-          message: "Изображение загружено",
-        });
-      } else {
-        setNotification({
-          type: "error",
-          message: result.error || "Ошибка загрузки",
-        });
-        setImagePreview(imageUrl);
+      const prepared = await preparePhotoForUpload(file, controller.signal);
+      controller.signal.throwIfAborted();
+      ownedPreview = URL.createObjectURL(prepared);
+      let upload: Blob | null = null;
+      let note = "";
+      const animated = prepared.type === "image/gif" || file.type === "image/gif";
+      if (cutOutBackground && !animated) {
+        try {
+          const cutout = await removeProductBackground(prepared, setPhotoStatus, controller.signal);
+          controller.signal.throwIfAborted();
+          setPhotoStatus("Сборка карточки…");
+          const card = await composeCatalogCard(cutout);
+          const serverPreview = ownedPreview;
+          ownedPreview = card.previewUrl;
+          if (serverPreview) URL.revokeObjectURL(serverPreview);
+          controller.signal.throwIfAborted();
+          upload = card.upload;
+        } catch (error) {
+          if (controller.signal.aborted) throw error;
+          note = error instanceof Error
+            ? `${error.message} Можно сохранить фото с обработкой на сервере.`
+            : "Не удалось удалить фон. Можно сохранить фото с обработкой на сервере.";
+        }
+      } else if (!cutOutBackground) {
+        note = "Фон останется на снимке. Сервер выровняет деталь, дорисует белые поля и поставит водяной знак.";
       }
+      if (!ownedPreview || photoTask.current !== controller) {
+        if (ownedPreview) URL.revokeObjectURL(ownedPreview);
+        ownedPreview = null;
+        return;
+      }
+      const previewUrl = ownedPreview;
+      ownedPreview = null;
+      setPendingPhoto({ previewUrl, upload, serverBlob: prepared, note });
+      setImagePreview(previewUrl);
+      setPhotoStatus(upload ? "Проверьте карточку и сохраните фото." : "Проверьте фото перед сохранением.");
+    } catch (error) {
+      if (ownedPreview) URL.revokeObjectURL(ownedPreview);
+      if (controller.signal.aborted || photoTask.current !== controller) return;
+      setNotification({
+        type: "error",
+        message: error instanceof Error ? error.message : "Ошибка при подготовке файла",
+      });
+      setImagePreview(imageUrl);
+      setPhotoStatus("");
+    } finally {
+      URL.revokeObjectURL(localPreview);
+      if (photoTask.current === controller) setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const cancelPendingPhoto = () => {
+    photoTask.current?.abort();
+    clearPendingPhoto();
+    setImagePreview(imageUrl);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const savePendingPhoto = async (mode: "cutout" | "server") => {
+    if (!pendingPhoto) return;
+    const blob = mode === "cutout" ? pendingPhoto.upload : pendingPhoto.serverBlob;
+    if (!blob) return;
+    setIsUploading(true);
+    setPhotoStatus("Загрузка и нанесение водяного знака…");
+    try {
+      const url = await uploadPhoto(blob, { ready: true, prepared: mode === "cutout" });
+      setImageUrl(url);
+      setImagePreview(url);
+      setValue("image", url);
+      clearPendingPhoto();
+      setNotification({ type: "success", message: "Изображение загружено" });
     } catch (error) {
       setNotification({
         type: "error",
         message: error instanceof Error ? error.message : "Ошибка при загрузке файла",
       });
-      setImagePreview(imageUrl);
     } finally {
       setIsUploading(false);
-      // Очищаем URL превью
-      URL.revokeObjectURL(previewUrl);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   // Удаление изображения
   const handleRemoveImage = () => {
+    photoTask.current?.abort();
+    clearPendingPhoto();
     setImageUrl("");
     setImagePreview("");
     setValue("image", "");
@@ -437,7 +515,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
   };
 
   const onSubmit = (data: FormData) => {
-    if (isUploading) return;
+    if (isUploading || pendingPhoto) return;
     setNotification(null);
     console.log("=== Form onSubmit data ===", data);
     console.log("=== isSingleType value ===", data.isSingleType, typeof data.isSingleType);
@@ -791,7 +869,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                     <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 transition-colors">
                       <Upload className="w-5 h-5 text-slate-500" />
                       <span className="text-sm text-slate-700">
-                        {isUploading ? "Загрузка..." : "Выбрать файл"}
+                        {isUploading ? "Обработка..." : "Выбрать файл"}
                       </span>
                       <input
                         ref={fileInputRef}
@@ -813,10 +891,27 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                       </button>
                     )}
                   </div>
+                  <label className="flex items-start gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      className="mt-1"
+                      checked={cutOutBackground}
+                      onChange={(event) => setCutOutBackground(event.target.checked)}
+                      disabled={isUploading}
+                    />
+                    <span>
+                      Удалить фон в браузере
+                      <span className="block text-xs font-normal text-slate-500">
+                        Модель скачивается один раз и работает на этом компьютере, сервер её не считает.
+                        Если снять галочку или удаление не получится, сервер выровняет деталь по цвету фона.
+                      </span>
+                    </span>
+                  </label>
                   <p className="text-xs text-slate-500">
                       JPG, PNG, WebP, GIF без анимации или HEIC — до 30 МБ. Большие снимки подготовим автоматически.
                   </p>
-                  {imageUrl && (
+                  {photoStatus && <p className="text-xs text-slate-600">{photoStatus}</p>}
+                  {imageUrl && !pendingPhoto && (
                     <p className="text-xs text-green-600 truncate">
                       ✓ {imageUrl}
                     </p>
@@ -1575,14 +1670,23 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
             </h3>
             <div className="relative aspect-square bg-white rounded-lg border border-slate-200 overflow-hidden">
               {imagePreview ? (
-                <Image
-                  src={imagePreview}
-                  alt="Предпросмотр фотографии товара"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 400px"
-                  className="w-full h-full object-contain"
-                  onError={() => setImagePreview("")}
-                />
+                imagePreview.startsWith("blob:") || imagePreview.startsWith("data:") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imagePreview}
+                    alt="Предпросмотр фотографии товара"
+                    className="absolute inset-0 h-full w-full object-contain"
+                  />
+                ) : (
+                  <Image
+                    src={imagePreview}
+                    alt="Предпросмотр фотографии товара"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    className="w-full h-full object-contain"
+                    onError={() => setImagePreview("")}
+                  />
+                )
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
                   <Package className="w-16 h-16 mb-2" />
@@ -1590,10 +1694,40 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                 </div>
               )}
             </div>
+            {pendingPhoto && (
+              <div className="mt-3 space-y-2">
+                {pendingPhoto.note && <p className="text-sm text-amber-800">{pendingPhoto.note}</p>}
+                {pendingPhoto.upload && (
+                  <button
+                    type="button"
+                    onClick={() => void savePendingPhoto("cutout")}
+                    disabled={isUploading}
+                    className="w-full px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    Сохранить это фото
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void savePendingPhoto("server")}
+                  disabled={isUploading}
+                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  {pendingPhoto.upload ? "Оставить фон и обработать на сервере" : "Сохранить с обработкой на сервере"}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelPendingPhoto}
+                  disabled={isUploading}
+                  className="w-full px-4 py-2.5 text-sm text-slate-500 hover:text-slate-800"
+                >
+                  Отменить новое фото
+                </button>
+              </div>
+            )}
             <p className="mt-3 text-sm text-slate-500">
-              После загрузки фото автоматически центрируется и приближается,
-              чтобы детали были крупнее. Пустые белые поля не уменьшают изображение.
-                Фотография дополняется белыми полями до квадрата, затем наносится водяной знак «РадиоКлад». Сохраняется только готовая версия.
+              С вырезанным фоном деталь ставится по центру на белый квадрат, с мягкой тенью и водяным знаком «РадиоКлад».
+              Без вырезания сервер определяет фон по цвету краёв, не цепляет слабую тень и тоже собирает белый квадрат.
             </p>
           </div>
 
@@ -1602,7 +1736,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
             <div className="space-y-3">
               <button
                 type="submit"
-                disabled={isPending || isUploading}
+                disabled={isPending || isUploading || !!pendingPhoto}
                 className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPending ? (

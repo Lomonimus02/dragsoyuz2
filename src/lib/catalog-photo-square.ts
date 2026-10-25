@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import { sharp } from "./sharp-runtime";
 
 /** Add only white pixels; the photo is neither resampled nor cropped here. */
 export async function extendPhotoToSquare(input: Buffer): Promise<Buffer> {

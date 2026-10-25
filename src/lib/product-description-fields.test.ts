@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseProductDescription, formatProductDescription } from "./product-description-fields";
+import { parseProductDescription, formatProductDescription, DESCRIPTION_FIELDS, pageDescriptionText } from "./product-description-fields";
 
 const legacy = "Наименование: Конденсаторы КМ зелёные;\r\nГруппа: общая (Н90, F, U, M, L);\r\nРазмер: любой;\r\nТип: Керамические многослойные, герметичные;\r\nВнешний вид: Корпус прямоугольный, зелёного цвета;\r\nПринимаем: без железных выводов;\r\n";
 
@@ -35,6 +35,17 @@ test("empty fields are omitted, list punctuation within values is retained", () 
   const draft = parseProductDescription(null);
   draft.fields = { name: "КМ", group: "H30; D;", size: "  ", type: "" };
   assert.equal(formatProductDescription(draft), "Наименование: КМ;\nГруппа: H30; D;");
+});
+
+test("admin placeholders stay out of stored and public description text", () => {
+  for (const field of DESCRIPTION_FIELDS) {
+    assert.doesNotMatch(field.placeholder, /КМ|Н90|N90|керамическ|железн|DIP-16/i);
+  }
+  const empty = formatProductDescription(parseProductDescription(""));
+  assert.equal(empty, "");
+  assert.equal(pageDescriptionText("  \n"), "");
+  assert.equal(pageDescriptionText(null), "");
+  for (const field of DESCRIPTION_FIELDS) assert.equal(empty.includes(field.placeholder), false);
 });
 
 test("multiline values remain inside their fields after saving and reopening", () => {

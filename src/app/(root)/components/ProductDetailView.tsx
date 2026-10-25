@@ -6,6 +6,7 @@ import { SellModal } from "./SellModal";
 import type { SellModalContactInfo } from "./SellModal";
 import { CalculatorModal } from "./CalculatorModal";
 import { ProductMetalContent } from "./ProductMetalContent";
+import { pageDescriptionText } from "@/lib/product-description-fields";
 import { productPurchaseCopy } from "@/lib/product-purchase-copy";
 import { SITE_BRAND } from "@/lib/site";
 import { productSeoCopy } from "@/lib/seo-content";
@@ -205,7 +206,8 @@ export function ProductDetailView({
       product.displayContentPalladium > 0 ||
       product.displayContentTantalum > 0);
 
-  const hasPageDescription = !!product.pageDescription;
+  const pageDescription = pageDescriptionText(product.pageDescription);
+  const hasPageDescription = pageDescription.length > 0;
   const purchaseCopy = suppliedCopy ?? productPurchaseCopy(product, SITE_BRAND);
 
   const howToSellSteps = [
@@ -307,7 +309,7 @@ export function ProductDetailView({
               Описание
             </h2>
             <p className="text-[var(--gray-700)] text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-              {product.pageDescription}
+              {pageDescription}
             </p>
           </section>
         )}

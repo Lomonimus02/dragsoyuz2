@@ -17,6 +17,7 @@ import { ProductCard, ProductGridSkeleton } from "../../../components";
 import { ProductDetailView } from "../../../components/ProductDetailView";
 import { buildSellContactInfo, SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
+import { pageDescriptionText } from "@/lib/product-description-fields";
 import { productPurchaseCopy } from "@/lib/product-purchase-copy";
 
 interface ProductPageProps {
@@ -205,6 +206,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!categoryResult.success) notFound();
   const category = categoryResult.data;
   const displayPrice = getDisplayPrice(product);
+  const pageDescription = pageDescriptionText(product.pageDescription);
   const purchaseCopy = productPurchaseCopy(product, SITE_BRAND, category.purchaseCopySettings);
 
   const settingsResult = await getGlobalSettings();
@@ -215,7 +217,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <>
       <ProductSchema
         name={product.name}
-        description={[purchaseCopy.schemaDescription, product.pageDescription].filter(Boolean).join("\n\n")}
+        description={[purchaseCopy.schemaDescription, pageDescription].filter(Boolean).join("\n\n")}
         image={product.image}
         price={displayPrice}
         categorySlug={categorySlug}

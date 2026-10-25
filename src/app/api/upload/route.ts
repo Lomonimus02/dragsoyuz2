@@ -46,10 +46,16 @@ export async function POST(request: Request) {
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
     const bytes = await file.arrayBuffer();
     const purpose = formData.get("purpose");
+    const prepared = formData.get("prepared");
     if (purpose !== null && purpose !== "catalog" && purpose !== "store") {
       return NextResponse.json({ success: false, error: "Неизвестный раздел загрузки" }, { status: 400 });
     }
-    const fileName = await saveWatermarkedPhoto(Buffer.from(bytes), uploadsDir, purpose === "store" ? "store" : "catalog");
+    if (prepared !== null && prepared !== "" && prepared !== "client") {
+      return NextResponse.json({ success: false, error: "Неизвестный режим обработки" }, { status: 400 });
+    }
+    // A browser-framed card is already centred on white. Watermark it, but do not crop it again.
+    const photoPurpose = prepared === "client" ? "client-framed" : purpose === "store" ? "store" : "catalog";
+    const fileName = await saveWatermarkedPhoto(Buffer.from(bytes), uploadsDir, photoPurpose);
 
     // Возвращаем публичный URL
     const publicUrl = `/uploads/${fileName}`;

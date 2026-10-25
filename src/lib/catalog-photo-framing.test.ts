@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { findPhotoBounds, photoTransform } from "./catalog-photo-framing";
+import { analyzeAlphaSubject, findPhotoBounds, photoTransform, placeAlphaCutout } from "./catalog-photo-framing";
 
 function photo(width: number, height: number, background = 255) {
   const pixels = new Uint8ClampedArray(width * height * 4);
@@ -56,6 +56,70 @@ test("fits an off-centre object tightly without clipping any edge at phone and d
 
 test("centres a nearly full-size object even when magnification is unnecessary", () => {
   assert.notEqual(photoTransform({ left: 0.1, top: 0, width: 0.9, height: 1 }, 400,400,200,200), "none");
+});
+
+test("ignores a soft grey shadow on the left and centres on the part", () => {
+  const width = 180;
+  const height = 80;
+  const { pixels } = photo(width, height, 255);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < 70; x++) {
+      const luma = 255 - Math.round(x * 0.7);
+      const i = (y * width + x) * 4;
+      pixels[i] = pixels[i + 1] = pixels[i + 2] = luma;
+    }
+  }
+  for (let y = 20; y < 60; y++) for (let x = 110; x < 160; x++) {
+    const i = (y * width + x) * 4;
+    pixels[i] = 30; pixels[i + 1] = 40; pixels[i + 2] = 50;
+  }
+  const bounds = findPhotoBounds(pixels, width, height);
+  assert.ok(bounds);
+  const center = bounds.left + bounds.width / 2;
+  assert.ok(bounds.left > 90 / width, `left ${bounds.left} still includes the shadow`);
+  assert.ok(center > 120 / width && center < 155 / width, `center ${center}`);
+});
+
+test("keeps a hard-edged grey part and frames a light-grey seamless background", () => {
+  const greyPart = photo(160, 100, 255);
+  for (let y = 25; y < 75; y++) for (let x = 30; x < 110; x++) {
+    const i = (y * 160 + x) * 4;
+    greyPart.pixels[i] = greyPart.pixels[i + 1] = greyPart.pixels[i + 2] = 150;
+  }
+  const kept = findPhotoBounds(greyPart.pixels, 160, 100);
+  assert.ok(kept && kept.left < 40 / 160 && kept.left + kept.width > 100 / 160);
+
+  const seamless = photo(160, 120, 198);
+  seamless.part(50, 30, 40, 50);
+  const framed = findPhotoBounds(seamless.pixels, 160, 120);
+  assert.ok(framed && framed.width < 0.55 && framed.height < 0.7);
+
+  const orange = photo(160, 120, 180);
+  for (let i = 0; i < orange.pixels.length; i += 4) {
+    orange.pixels[i] = 210; orange.pixels[i + 1] = 120; orange.pixels[i + 2] = 40;
+  }
+  orange.part(40, 30, 50, 40);
+  assert.equal(findPhotoBounds(orange.pixels, 160, 120), null);
+});
+
+test("alpha cut-out is centred on its visual mass with padding", () => {
+  const width = 120;
+  const height = 80;
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  for (let y = 20; y < 60; y++) for (let x = 70; x < 110; x++) {
+    const i = (y * width + x) * 4;
+    pixels[i] = pixels[i + 1] = pixels[i + 2] = 20;
+    pixels[i + 3] = 255;
+  }
+  const subject = analyzeAlphaSubject(pixels, width, height);
+  assert.ok(subject && subject.transparentRatio > 0.5);
+  const place = placeAlphaCutout(subject!);
+  const scale = place.dw / place.sw;
+  const mappedX = place.dx - place.sx * scale + subject!.massX * scale;
+  const mappedY = place.dy - place.sy * scale + subject!.massY * scale;
+  assert.ok(Math.abs(mappedX - place.side / 2) < 0.6);
+  assert.ok(Math.abs(mappedY - place.side / 2) < 0.6);
+  assert.ok(place.side > subject!.right - subject!.left);
 });
 
 test("fits a part on a slightly grey white background without mistaking the gradient for the part", () => {
