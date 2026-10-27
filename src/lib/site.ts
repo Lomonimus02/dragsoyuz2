@@ -15,6 +15,7 @@ export const SITE_THEME = process.env.NEXT_PUBLIC_SITE_THEME?.trim() || "radiokl
 // Empty optional contacts must not link the second store to the original brand.
 export const DEFAULT_SITE_EMAIL = SITE_THEME === "radioklad" ? "" : "info@dragsoyuz.ru";
 export const DEFAULT_SITE_VK_URL = SITE_THEME === "radioklad" ? "" : "https://vk.com/dragsoyuz";
+/** Номер из окружения для второго магазина. Витрина РадиоКлада берёт свой счётчик по теме. */
 export const YANDEX_METRIKA_ID =
   process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID?.trim() ?? "";
 

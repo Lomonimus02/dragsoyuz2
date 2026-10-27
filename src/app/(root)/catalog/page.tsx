@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CatalogImage as Image } from "../components/CatalogImage";
 import { Package, ChevronRight } from "@/app/(root)/components/icons";
 import { ProductGridSkeleton } from "../components";
+import { categoryCoverImages, usableCatalogImage } from "@/lib/category-cover";
 import { prisma } from "@/lib/prisma";
 import { SITE_BRAND } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
@@ -20,23 +21,44 @@ export const metadata: Metadata = pageMetadata({
 
 // Categories List
 async function CategoriesList() {
-  // Получаем корневые категории с фото витрины (isShowcaseFace товар)
-  const categories = await prisma.category.findMany({
-    where: { parentId: null },
-    orderBy: { sortOrder: "asc" },
-    include: {
-      _count: { select: { products: true } },
-      children: {
-        select: { _count: { select: { products: true } } },
+  // Корневые категории. Фото — отдельным узким запросом: id, категория, url, флаг и порядок.
+  // Полные карточки товаров сюда не грузятся.
+  const [categories, nodes, products] = await Promise.all([
+    prisma.category.findMany({
+      where: { parentId: null },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        imageUrl: true,
+        _count: { select: { products: true } },
+        children: {
+          select: { _count: { select: { products: true } } },
+        },
       },
-      // Ищем товар-лицо категории для фото
-      products: {
-        where: { isShowcaseFace: true, image: { not: null } },
-        select: { image: true },
-        take: 1,
+    }),
+    prisma.category.findMany({
+      select: { id: true, parentId: true },
+    }),
+    prisma.product.findMany({
+      where: {
+        AND: [{ NOT: { image: null } }, { NOT: { image: "" } }],
       },
-    },
-  });
+      select: {
+        id: true,
+        categoryId: true,
+        image: true,
+        isShowcaseFace: true,
+        sortOrder: true,
+      },
+    }),
+  ]);
+  const covers = categoryCoverImages(
+    categories.map((category) => category.id),
+    nodes,
+    products,
+  );
 
   if (categories.length === 0) {
     return (
@@ -55,9 +77,8 @@ async function CategoriesList() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       {categories.map((category, index) => {
-        const showcaseImage = category.products[0]?.image ?? null;
-        // Приоритет: собственная картинка категории > витринный товар > заглушка
-        const displayImage = category.imageUrl || showcaseImage;
+        // Своё фото категории, иначе товар «на главную», иначе любое фото из дерева категории.
+        const displayImage = usableCatalogImage(category.imageUrl) ?? covers.get(category.id) ?? null;
         const childrenProducts = category.children?.reduce(
           (sum, child) => sum + child._count.products, 0
         ) ?? 0;

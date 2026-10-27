@@ -5,6 +5,7 @@ import { getGlobalSettings, isAuthenticated, getCategories } from "@/app/actions
 import type { HeaderContactInfo } from "./components/Header";
 import type { FooterContactInfo } from "./components/Footer";
 import { JivoWidget } from "./components/JivoWidget";
+import { YandexMetrika } from "./components/YandexMetrika";
 import { PromoPopup } from "./components/PromoPopup";
 import { IosChromeRestoreReload } from "./components/IosChromeRestoreReload";
 import { SiteContactsProvider } from "./components/SiteContactsProvider";
@@ -101,6 +102,7 @@ export default async function RootLayout({
           buttonCaption={settings?.promoButtonCaption ?? ""}
         />
         <JivoWidget />
+        <YandexMetrika />
         <IosChromeRestoreReload />
       </div>
     </div>
