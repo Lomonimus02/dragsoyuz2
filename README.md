@@ -16,6 +16,8 @@ NEXT_PUBLIC_SITE_BRAND=РадиоКлад
 NEXT_PUBLIC_SITE_THEME=radioklad
 LOCAL_PREVIEW=0
 NEXT_PUBLIC_JIVO_WIDGET_ID=aXuLlAFWY4
+# Счётчик 113820841 вшит в тему radioklad. Эта переменная его не подменяет
+# и нужна только чужому магазину; на РадиоКладе оставьте пустой.
 NEXT_PUBLIC_YANDEX_METRIKA_ID=
 ```
 
