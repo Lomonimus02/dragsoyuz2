@@ -1,6 +1,14 @@
 "use client";
 
-type UploadOptions = { purpose?: "catalog" | "store"; signal?: AbortSignal; onStatus?: (text: string) => void };
+type UploadOptions = {
+  purpose?: "catalog" | "store";
+  /** Square card already composed in the browser. The server watermarks it and does not crop again. */
+  prepared?: boolean;
+  /** Blob was already resized in the browser. */
+  ready?: boolean;
+  signal?: AbortSignal;
+  onStatus?: (text: string) => void;
+};
 const MAX_SOURCE_BYTES = 30 * 1024 * 1024;
 
 function decodePhoto(blob: Blob, signal: AbortSignal): Promise<HTMLImageElement> {
@@ -22,7 +30,7 @@ function decodePhoto(blob: Blob, signal: AbortSignal): Promise<HTMLImageElement>
   });
 }
 
-async function preparePhoto(file: File, signal: AbortSignal): Promise<Blob> {
+export async function preparePhotoForUpload(file: File, signal: AbortSignal): Promise<Blob> {
   if (file.size > MAX_SOURCE_BYTES) throw new Error("Фотография слишком большая. Выберите файл до 30 МБ.");
   const heic = /\.(heic|heif)$/i.test(file.name) || /image\/hei[cf]/i.test(file.type);
   if (!heic && !/^image\/(jpeg|png|webp|gif)$/.test(file.type) && !/\.(jpe?g|png|webp|gif)$/i.test(file.name)) {
@@ -56,8 +64,15 @@ async function preparePhoto(file: File, signal: AbortSignal): Promise<Blob> {
   } finally { canvas.width = canvas.height = 1; }
 }
 
+function uploadName(type: string) {
+  if (type === "image/gif") return "photo.gif";
+  if (type === "image/png") return "photo.png";
+  if (type === "image/webp") return "photo.webp";
+  return "photo.jpg";
+}
+
 /** Originals stay in the browser; only a bounded upload is sent for watermarking. */
-export async function uploadPhoto(file: File, options: UploadOptions = {}): Promise<string> {
+export async function uploadPhoto(file: File | Blob, options: UploadOptions = {}): Promise<string> {
   const controller = new AbortController();
   let timedOut = false;
   const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, 90_000);
@@ -68,13 +83,14 @@ export async function uploadPhoto(file: File, options: UploadOptions = {}): Prom
   try {
     return await Promise.race([
       (async () => {
-        options.onStatus?.("Подготовка фотографии…");
-        const photo = await preparePhoto(file, signal);
+        options.onStatus?.(options.ready ? "Загрузка и нанесение водяного знака…" : "Подготовка фотографии…");
+        const photo = options.ready ? file : await preparePhotoForUpload(file as File, signal);
         signal.throwIfAborted();
         if (photo.size > 5 * 1024 * 1024) throw new Error("Файл остаётся слишком большим. Выберите фотографию меньшего размера.");
         const body = new FormData();
-        body.append("file", photo, photo.type === "image/gif" ? "photo.gif" : "photo.jpg");
+        body.append("file", photo, uploadName(photo.type));
         body.append("purpose", options.purpose ?? "catalog");
+        if (options.prepared) body.append("prepared", "client");
         options.onStatus?.("Загрузка и нанесение водяного знака…");
         const response = await fetch("/api/upload", { method: "POST", body, signal, credentials: "same-origin" });
         const result = await response.json().catch(() => null);

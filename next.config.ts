@@ -39,6 +39,14 @@ const nextConfig: NextConfig = {
   },
   output: "standalone",
   cacheMaxMemorySize: 0,
+  serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web", "onnxruntime-node"],
+  outputFileTracingExcludes: {
+    "*": [
+      "node_modules/@imgly/background-removal/**",
+      "node_modules/onnxruntime-web/**",
+      "node_modules/onnxruntime-node/**",
+    ],
+  },
   experimental: { cpus: 1 },
   images: {
     unoptimized: true,

@@ -1,15 +1,15 @@
 export const DESCRIPTION_FIELDS = [
-  { key: "name", label: "Наименование", placeholder: "Конденсаторы КМ зелёные", basic: true, multiline: false },
-  { key: "group", label: "Группа", placeholder: "общая (Н90, F, U, M, L)", basic: true, multiline: false },
-  { key: "size", label: "Размер", placeholder: "любой", basic: true, multiline: false },
-  { key: "type", label: "Тип", placeholder: "керамические многослойные, герметичные", basic: true, multiline: false },
-  { key: "appearance", label: "Внешний вид", placeholder: "прямоугольный корпус, выводы с двух сторон", basic: true, multiline: true },
-  { key: "acceptance", label: "Принимаем", placeholder: "без железных выводов", basic: true, multiline: true },
-  { key: "body", label: "Корпус", placeholder: "DIP-16 (16 выводов)", basic: false, multiline: false },
-  { key: "substrate", label: "Подложка", placeholder: "отсутствует", basic: false, multiline: false },
-  { key: "application", label: "Применение", placeholder: "измерительные приборы, системы связи", basic: false, multiline: true },
-  { key: "metals", label: "Содержание драгметаллов", placeholder: "позолоченные выводы и контактные площадки", basic: false, multiline: true },
-  { key: "condition", label: "Состояние", placeholder: "любое", basic: false, multiline: false },
+  { key: "name", label: "Наименование", placeholder: "Название детали", basic: true, multiline: false },
+  { key: "group", label: "Группа", placeholder: "Группа или серия", basic: true, multiline: false },
+  { key: "size", label: "Размер", placeholder: "Размер или габарит", basic: true, multiline: false },
+  { key: "type", label: "Тип", placeholder: "Тип или разновидность", basic: true, multiline: false },
+  { key: "appearance", label: "Внешний вид", placeholder: "Форма, цвет, выводы", basic: true, multiline: true },
+  { key: "acceptance", label: "Принимаем", placeholder: "Какие варианты принимаете", basic: true, multiline: true },
+  { key: "body", label: "Корпус", placeholder: "Обозначение корпуса", basic: false, multiline: false },
+  { key: "substrate", label: "Подложка", placeholder: "Материал подложки", basic: false, multiline: false },
+  { key: "application", label: "Применение", placeholder: "Где применялась деталь", basic: false, multiline: true },
+  { key: "metals", label: "Содержание драгметаллов", placeholder: "Что содержит драгметалл", basic: false, multiline: true },
+  { key: "condition", label: "Состояние", placeholder: "Новое, б/у или любое", basic: false, multiline: false },
 ] as const;
 
 export type DescriptionFieldKey = typeof DESCRIPTION_FIELDS[number]["key"];
@@ -21,6 +21,11 @@ export type ProductDescriptionDraft = {
   initialFields: FieldValues;
   initialAdditionalText: string;
 };
+
+/** Public pages render only stored text. Admin placeholders are never part of it. */
+export function pageDescriptionText(value: string | null | undefined): string {
+  return (value ?? "").replace(/\u00a0/g, " ").trim();
+}
 
 const normalize = (label: string) => label.trim().toLowerCase().replaceAll("ё", "е");
 const labelKeys = new Map<string, DescriptionFieldKey>(DESCRIPTION_FIELDS.map(field => [normalize(field.label), field.key]));

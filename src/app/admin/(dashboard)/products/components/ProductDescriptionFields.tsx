@@ -17,7 +17,7 @@ export function ProductDescriptionFields({ draft, onChange, productName }: Props
 
   return (
     <div className="mt-3 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4" data-testid="product-description-fields">
-      <p className="text-sm text-slate-600">Заполните только значения. Подписи добавятся автоматически, пустые поля не будут показаны на сайте.</p>
+      <p className="text-sm text-slate-600">Заполните только значения. Подписи добавятся автоматически. Пустые поля и текст-подсказка внутри них на сайте не публикуются.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {visible.map(field => (
           <div key={field.key} className={field.multiline || field.key === "name" || field.key === "type" ? "sm:col-span-2 min-w-0" : "min-w-0"}>

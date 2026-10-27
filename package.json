@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node --max-old-space-size=512 ./node_modules/next/dist/bin/next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -20,6 +20,7 @@
     "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@imgly/background-removal": "1.7.0",
     "@phosphor-icons/react": "2.1.10",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
@@ -29,6 +30,7 @@
     "heic-to": "1.6.6",
     "lucide-react": "^0.563.0",
     "next": "16.4.2",
+    "onnxruntime-web": "1.21.0",
     "pg": "^8.18.0",
     "prisma": "^7.3.0",
     "react": "19.2.3",
