@@ -341,7 +341,8 @@ export function CalculatorModal({
 
   const resetAfterAdd = () => {
     setCondition(showConditionPicker ? null : defaultCondition(product));
-    setYearPeriodId(showYearPicker ? null : "until1990");
+    // Выбранный год запоминаем: в одном окне обычно вносят много деталей одного года.
+    setYearPeriodId((prev) => (showYearPicker ? prev : "until1990"));
     setQuantityInput("");
     setConditionError(false);
     setYearError(false);
