@@ -46,8 +46,23 @@ function isPgmSection(product: GramQuantityProduct): boolean {
   );
 }
 
+/**
+ * Весовые товары, которые по ошибке заведены в каталоге как PIECE
+ * (Pd 15000 мг — это содержание на кг, как у остальных «КМ ... группа»).
+ * Для них оставляем счёт в граммах, пока unitType в базе не исправлен.
+ */
+const WEIGHT_PRICED_DESPITE_PIECE_SLUGS: ReadonlySet<string> = new Set([
+  "kondensatory-k10-23-gruppa-h30-d",
+]);
+
 export function usesGramQuantity(product: GramQuantityProduct): boolean {
   if (product.unitType === "KG" || product.unitType === "GRAM") return true;
+  if (
+    product.slug &&
+    WEIGHT_PRICED_DESPITE_PIECE_SLUGS.has(product.slug.toLowerCase())
+  ) {
+    return true;
+  }
   // Товар, который в каталоге явно продаётся «за штуку», считаем поштучно,
   // даже если лежит в разделе конденсаторов, серебра или платиновой группы.
   if (product.unitType === "PIECE") return false;

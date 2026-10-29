@@ -33,3 +33,17 @@ test("without unitType the section name still decides (legacy fallback)", () => 
   assert.equal(usesGramQuantity({ categorySlug: "kondensatory-km" }), true);
   assert.equal(usesGramQuantity({ categorySlug: "rezistory" }), false);
 });
+
+test("K10-23 stored as PIECE in the catalog is still counted by weight", () => {
+  const k10 = {
+    unitType: "PIECE" as const,
+    categorySlug: "kondensatory-km",
+    categoryName: "Конденсаторы КМ",
+    slug: "kondensatory-k10-23-gruppa-h30-d",
+    name: "Конденсаторы К10-23 группа: H30; D;",
+  };
+  assert.equal(usesGramQuantity(k10), true);
+  assert.equal(computeLineTotal(28500, 1000, k10), 28500);
+  // другие штучные товары того же раздела (МЛЗ) остаются штучными
+  assert.equal(usesGramQuantity({ ...k10, slug: "mlz", name: "МЛЗ" }), false);
+});
