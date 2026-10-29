@@ -48,6 +48,10 @@ function isPgmSection(product: GramQuantityProduct): boolean {
 
 export function usesGramQuantity(product: GramQuantityProduct): boolean {
   if (product.unitType === "KG" || product.unitType === "GRAM") return true;
+  // Товар, который в каталоге явно продаётся «за штуку», считаем поштучно,
+  // даже если лежит в разделе конденсаторов, серебра или платиновой группы.
+  if (product.unitType === "PIECE") return false;
+  // unitType не передан — запасной вариант: определяем по названию раздела.
   return (
     isCapacitorSection(product) ||
     isTechSilverSection(product) ||
