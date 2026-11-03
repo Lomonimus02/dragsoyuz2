@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import "./radioklad-fonts.css";
 import "./radioklad.css";
+import { brandIcons } from "@/lib/brand-mark";
 import { SITE_BRAND, SITE_THEME, SITE_URL } from "@/lib/site";
 
 const BASE_URL = SITE_URL;
@@ -20,6 +21,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   applicationName: SITE_BRAND,
+  icons: brandIcons(SITE_THEME),
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",

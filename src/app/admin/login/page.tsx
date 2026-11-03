@@ -5,7 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { loginAdmin } from "@/app/actions";
 import { Lock, Loader2, AlertCircle } from "lucide-react";
-import { SITE_BRAND, siteHostLabel } from "@/lib/site";
+import { brandIconPath } from "@/lib/brand-mark";
+import { SITE_BRAND, SITE_THEME, siteHostLabel } from "@/lib/site";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/icon.svg" alt="" width={64} height={64} className="mx-auto rounded-xl mb-4 shadow-lg" priority />
+          <Image src={brandIconPath(SITE_THEME)} alt="" width={64} height={64} className="mx-auto rounded-xl mb-4 shadow-lg" priority />
           <h1 className="text-2xl font-bold text-slate-800">{SITE_BRAND}</h1>
           <p className="text-slate-500 mt-1">Панель администратора</p>
           <p className="text-sm text-emerald-800 mt-2">{siteHostLabel()}</p>
