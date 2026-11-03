@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { SITE_BRAND, siteHostLabel } from "@/lib/site";
+import { brandIconPath } from "@/lib/brand-mark";
+import { SITE_BRAND, SITE_THEME, siteHostLabel } from "@/lib/site";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -74,7 +75,7 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-slate-700">
-        <Image src="/icon.svg" alt="" width={40} height={40} className="shrink-0 rounded-lg" />
+        <Image src={brandIconPath(SITE_THEME)} alt="" width={40} height={40} className="shrink-0 rounded-lg" />
         <div>
           <h1 className="text-lg font-bold text-white">{SITE_BRAND}</h1>
           <p className="text-xs text-emerald-200">{siteHostLabel()} · Админ-панель</p>
@@ -223,7 +224,7 @@ export default function DashboardLayout({
             <Menu className="w-6 h-6 text-slate-600" />
           </button>
           <div className="flex items-center gap-2">
-            <Image src="/icon.svg" alt="" width={32} height={32} className="rounded-lg" />
+            <Image src={brandIconPath(SITE_THEME)} alt="" width={32} height={32} className="rounded-lg" />
             <div>
               <h1 className="font-semibold text-slate-800">{SITE_BRAND}</h1>
               <p className="text-xs text-slate-500">Админ-панель · {siteHostLabel()}</p>

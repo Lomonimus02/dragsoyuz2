@@ -13,7 +13,8 @@ import {
 import { getCategoryShowcase, getGlobalSettings } from "@/app/actions";
 import { BenefitsSection } from "./components/BenefitCard";
 import { ReviewsSection } from "./components/ReviewsSection";
-import { SITE_BRAND, SITE_URL as BASE_URL } from "@/lib/site";
+import { brandLogoPath } from "@/lib/brand-mark";
+import { SITE_BRAND, SITE_THEME, SITE_URL as BASE_URL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
 import { canonicalPageUrl } from "@/lib/seo-routing";
 
@@ -116,7 +117,7 @@ function OrganizationSchema({ name, phone, email, address, workSchedule, telegra
     "@id": `${baseUrl}/#organization`,
     name,
     url: baseUrl,
-    logo: `${baseUrl}/logo.svg`,
+    logo: `${baseUrl}${brandLogoPath(SITE_THEME)}`,
     image: `${baseUrl}/opengraph-image`,
     description: "Скупка радиодеталей, содержащих драгоценные металлы. Транзисторы, конденсаторы, микросхемы, реле.",
     priceRange: "₽₽",
