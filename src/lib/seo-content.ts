@@ -1,7 +1,16 @@
 import pageCopy from "./seo-pages.json";
+import { SITE_BRAND, SITE_THEME } from "./site";
 
 export function seoPageCopy(path: string) {
-  return (pageCopy as Record<string, { title: string; description: string; h1: string }>)[path];
+  const copy = (pageCopy as Record<string, { title: string; description: string; h1: string }>)[path];
+  if (path === "/" && SITE_THEME === "radioklad") {
+    return {
+      ...copy,
+      title: `${SITE_BRAND} — скупка радиодеталей и плат в Санкт-Петербурге`,
+      h1: `${SITE_BRAND} — скупка радиодеталей в Санкт-Петербурге`,
+    };
+  }
+  return copy;
 }
 
 export function productSeoCopy(product: { name: string; seoTitle?: string | null; seoH1?: string | null; seoDescription?: string | null }, brand: string) {
