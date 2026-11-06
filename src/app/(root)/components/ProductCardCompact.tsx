@@ -168,7 +168,7 @@ export function ProductCardCompact({ product, contactInfo }: ProductCardCompactP
           )}
 
         {/* Prices */}
-        <div>
+        <div className="rk-product-prices">
           {/* Цена по запросу */}
           {product.isPriceOnRequest ? (
             <div className="flex items-center justify-center px-2 py-2.5 rounded-md bg-slate-100">
