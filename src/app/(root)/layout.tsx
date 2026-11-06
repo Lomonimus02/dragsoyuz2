@@ -87,7 +87,11 @@ export default async function RootLayout({
         />
         <Header contactInfo={headerContactInfo} categories={navigationCategories} />
       </div>
-      <main className="flex-1"><PriceListDateProvider value={settings?.priceListDate ?? null}>{children}</PriceListDateProvider></main>
+      <main className="flex-1">
+        <PriceListDateProvider value={settings?.priceListDate ? { iso: settings.priceListDate, label: settings.priceListDateLabel } : null}>
+          {children}
+        </PriceListDateProvider>
+      </main>
       <div className="print:hidden">
         <Footer contactInfo={footerContactInfo} />
       </div>

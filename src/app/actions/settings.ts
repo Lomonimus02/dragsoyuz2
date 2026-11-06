@@ -82,6 +82,7 @@ export interface GlobalSettingsData {
   aboutPhotoUrl: string;
   // Показывать ли плашку над шапкой
   priceListDate: string | null;
+  priceListDateLabel: string;
   showArrivalNotice: boolean;
   // Текст плашки над шапкой
   arrivalNoticeText: string;
@@ -117,6 +118,7 @@ export interface UpdateGlobalSettingsInput {
   aboutText?: string;
   aboutPhotoUrl?: string;
   priceListDate?: string | null;
+  priceListDateLabel?: string;
   showArrivalNotice?: boolean;
   arrivalNoticeText?: string;
   yearPeriodDiscounts?: YearPeriodDiscounts;
@@ -297,6 +299,7 @@ function serializeGlobalSettings(settings: {
   aboutText: string | null;
   aboutPhotoUrl: string | null;
   priceListDate: Date | null;
+  priceListDateLabel: string;
   showArrivalNotice: boolean;
   arrivalNoticeText: string | null;
   yearPeriodDiscounts: unknown;
@@ -326,6 +329,7 @@ function serializeGlobalSettings(settings: {
     aboutText: settings.aboutText ?? "",
     aboutPhotoUrl: settings.aboutPhotoUrl ?? "",
     priceListDate: settings.priceListDate?.toISOString().slice(0,10) ?? null,
+    priceListDateLabel: settings.priceListDateLabel,
     showArrivalNotice: settings.showArrivalNotice ?? false,
     arrivalNoticeText:
       settings.arrivalNoticeText?.trim() || "",
@@ -455,6 +459,12 @@ export async function updateGlobalSettings(
     if (input.storePhotoUrls !== undefined) updateData.storePhotoUrls = input.storePhotoUrls;
     if (input.aboutText !== undefined) updateData.aboutText = input.aboutText;
     if (input.aboutPhotoUrl !== undefined) updateData.aboutPhotoUrl = input.aboutPhotoUrl;
+    if (input.priceListDateLabel !== undefined) {
+      if (typeof input.priceListDateLabel !== "string" || input.priceListDateLabel.trim().length > 160) {
+        return { success: false, error: "Текст плашки должен быть не длиннее 160 символов" };
+      }
+      updateData.priceListDateLabel = input.priceListDateLabel.trim();
+    }
     let priceListDate: Date | null = null;
     if (input.priceListDate !== undefined) {
       if (input.priceListDate) {
@@ -492,6 +502,7 @@ export async function updateGlobalSettings(
         aboutText: input.aboutText ?? "",
         aboutPhotoUrl: input.aboutPhotoUrl ?? "",
         priceListDate,
+        priceListDateLabel: updateData.priceListDateLabel,
         showArrivalNotice: input.showArrivalNotice ?? false,
         arrivalNoticeText:
           input.arrivalNoticeText?.trim() || "",

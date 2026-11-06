@@ -12,6 +12,7 @@ interface ContactSettingsFormProps {
 
 export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
   const [form, setForm] = useState({
+    priceListDateLabel: initialData.priceListDateLabel,
     phoneNumber: initialData.phoneNumber || "",
     email: initialData.email || "",
     telegramUsername: initialData.telegramUsername || "",
@@ -86,6 +87,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
         workSchedule: form.workSchedule,
         storePhotoUrls: storePhotoUrls,
         priceListDate: priceListDate || null,
+        priceListDateLabel: form.priceListDateLabel,
         showArrivalNotice: showArrivalNotice,
         arrivalNoticeText: arrivalNoticeText,
       });
@@ -291,11 +293,20 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
         </div>
       </div>
 
-      <label className="block rounded-lg border border-slate-200 bg-slate-50/70 p-4 text-sm font-medium">
-        Дата прайса
-        <input type="date" className="block mt-2 rounded border bg-white p-2" value={priceListDate} onChange={e => {setPriceListDate(e.target.value); setMessage(null)}} />
-        <small className="block mt-1 text-slate-600">Рядом с ценами на главной, в каталоге, разделах и карточках. Очистите дату, чтобы убрать подпись.</small>
-      </label>
+      <fieldset className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+        <legend className="px-1 text-sm font-semibold">Плашка с датой прайса</legend>
+        <label className="block text-sm font-medium">
+          Текст перед датой
+          <input type="text" maxLength={160} className="mt-1 block w-full rounded border bg-white p-2"
+            value={form.priceListDateLabel} onChange={handleChange("priceListDateLabel")} />
+        </label>
+        <label className="block text-sm font-medium">
+          Дата прайса
+          <input type="date" className="mt-1 block rounded border bg-white p-2" value={priceListDate}
+            onChange={e => { setPriceListDate(e.target.value); setMessage(null); }} />
+        </label>
+        <small className="block text-slate-600">Чтобы скрыть плашку, очистите дату.</small>
+      </fieldset>
       {/* Arrival Notice */}
       <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
         <label className="flex items-center gap-3 cursor-pointer">

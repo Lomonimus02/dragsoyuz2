@@ -45,6 +45,7 @@ model GlobalSettings {
 
   // Плашка над шапкой (можно скрыть и менять текст в админке)
   priceListDate DateTime? @db.Date
+  priceListDateLabel String @default("Цены в прайсе действительны на:") @db.VarChar(160)
   showArrivalNotice Boolean @default(false)
   arrivalNoticeText String  @default("")
 

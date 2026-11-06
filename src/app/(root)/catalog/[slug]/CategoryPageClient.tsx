@@ -80,7 +80,6 @@ export function CategoryPageClient({
           <div className="rk-category-hero-grid">
             <div className="rk-category-hero-copy">
               <h1>{seoPageCopy(`/catalog/${category.slug}`)?.h1 || category.name}</h1>
-            <PriceListDate />
               <p>Товаров в разделе: {total}</p>
               <Link href="/catalog" className="rk-category-back">
                 <ArrowLeft className="w-4 h-4" /> Все категории
@@ -101,6 +100,7 @@ export function CategoryPageClient({
       </section>
 
       <div className="rk-category-list container mx-auto px-4 py-6">
+        <PriceListDate prominent />
         <CategoryBanners
           categoryName={category.name}
           categorySlug={category.slug}

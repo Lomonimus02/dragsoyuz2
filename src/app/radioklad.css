@@ -409,3 +409,18 @@
 }
 
 .rk-price-list-date {display: inline-block; margin-top: .5rem; padding: .2rem .65rem; border-radius: .45rem; background: #eef3eb; color: #36523e; font-size: .8125rem; font-weight: 500; line-height: 1.4;}
+
+.rk-price-list-date--section {
+  display: block;
+  margin: 0 0 14px;
+  padding: 10px 16px;
+  border-left: 4px solid #285441;
+  border-radius: 6px;
+  background: #e4eee4;
+  color: #214939;
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 650;
+}
+
+.rk-price-list-date { max-width: 100%; overflow-wrap: anywhere; }
+.rk-price-list-date time { white-space: nowrap; }
