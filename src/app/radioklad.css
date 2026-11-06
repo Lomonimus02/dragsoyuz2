@@ -400,3 +400,10 @@
 }
 
 .rk-hero h1 { max-width: 850px; margin-inline: auto; font-size: clamp(30px, 4.2vw, 58px); text-wrap: balance; }
+@media (min-width: 768px) {
+  [data-theme="radioklad"] .rk-hero h1 {
+    /* Keep the title in the clear space between the two groups of parts. */
+    max-width: min(46vw, 690px);
+    font-size: clamp(30px, 3.7vw, 52px);
+  }
+}
