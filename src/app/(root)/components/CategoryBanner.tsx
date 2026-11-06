@@ -256,7 +256,7 @@ export function CategoryBanners({
     normalizeInfoPageButtonColor(infoPageButtonTextColor) ??
     INFO_PAGE_BUTTON_DEFAULT_TEXT_COLOR;
   const infoButtonClassName =
-    "rk-category-guide-link flex w-full items-center gap-3 bg-[var(--primary-700)] font-semibold text-white transition hover:brightness-90";
+    "rk-category-guide-link grid w-full items-center gap-3 bg-[var(--primary-700)] font-semibold text-white transition hover:brightness-90";
   const infoButtonStyle: { backgroundColor?: string; color: string } = {
     color: resolvedButtonTextColor,
   };

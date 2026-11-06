@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from "@/app/(root)/components/icons";
 import { InfoBreadcrumb } from "../components/InfoBreadcrumb";
+import { SiteChatButton } from "./SiteChatButton";
 import { VkIcon } from "../components/BrandIcons";
 import { getGlobalSettings } from "@/app/actions";
 import { SITE_BRAND, DEFAULT_SITE_EMAIL, DEFAULT_SITE_VK_URL } from "@/lib/site";
@@ -105,6 +106,7 @@ export default async function ContactsPage() {
                 <ArrowRight className="rk-channel-arrow" />
               </a>
             )}
+            <SiteChatButton />
           </div>
         </section>
 
