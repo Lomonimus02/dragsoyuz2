@@ -20,10 +20,10 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
     address: initialData.address || "",
     workSchedule: initialData.workSchedule || "",
   });
-  const [showArrivalNotice, setShowArrivalNotice] = useState(initialData.showArrivalNotice ?? true);
+  const [priceListDate, setPriceListDate] = useState(initialData.priceListDate ?? "");
+  const [showArrivalNotice, setShowArrivalNotice] = useState(initialData.showArrivalNotice ?? false);
   const [arrivalNoticeText, setArrivalNoticeText] = useState(
-    initialData.arrivalNoticeText ||
-      "❗️Время прибытия необходимо согласовать заранее❗️",
+    initialData.arrivalNoticeText || "",
   );
   const [storePhotoUrls, setStorePhotoUrls] = useState<string[]>(initialData.storePhotoUrls ?? []);
   const [isUploading, setIsUploading] = useState(false);
@@ -85,6 +85,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
         address: form.address,
         workSchedule: form.workSchedule,
         storePhotoUrls: storePhotoUrls,
+        priceListDate: priceListDate || null,
         showArrivalNotice: showArrivalNotice,
         arrivalNoticeText: arrivalNoticeText,
       });
@@ -290,6 +291,11 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
         </div>
       </div>
 
+      <label className="block rounded-lg border border-slate-200 bg-slate-50/70 p-4 text-sm font-medium">
+        Дата прайса
+        <input type="date" className="block mt-2 rounded border bg-white p-2" value={priceListDate} onChange={e => {setPriceListDate(e.target.value); setMessage(null)}} />
+        <small className="block mt-1 text-slate-600">Рядом с ценами на главной, в каталоге, разделах и карточках. Очистите дату, чтобы убрать подпись.</small>
+      </label>
       {/* Arrival Notice */}
       <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
         <label className="flex items-center gap-3 cursor-pointer">
@@ -308,14 +314,14 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-slate-400" />
             <span className="text-sm font-medium text-slate-700">
-              Показывать плашку над шапкой сайта
+              Показывать объявление над шапкой сайта
             </span>
           </div>
         </label>
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            Текст плашки
+            Текст объявления
           </label>
           <textarea
             value={arrivalNoticeText}
@@ -324,7 +330,7 @@ export function ContactSettingsForm({ initialData }: ContactSettingsFormProps) {
               setMessage(null);
             }}
             rows={2}
-            placeholder="❗️Время прибытия необходимо согласовать заранее❗️"
+            placeholder="Например: завтра пункт приёма закрыт"
             className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors resize-none"
           />
           <p className="text-xs text-slate-500 mt-1">

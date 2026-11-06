@@ -1,3 +1,4 @@
+import { PriceListDate } from "@/app/(root)/components/PriceListDate";
 import { seoPageCopy } from "@/lib/seo-content";
 import Link from "next/link";
 import { CatalogImage as Image } from "./components/CatalogImage";
@@ -223,6 +224,7 @@ async function CatalogSection() {
             <h2 className="text-2xl md:text-3xl font-bold text-[var(--gray-900)]">
               Каталог радиодеталей
             </h2>
+            <PriceListDate />
             <p className="text-[var(--gray-600)] mt-2">
               Найдите свои детали и узнайте цену скупки
             </p>

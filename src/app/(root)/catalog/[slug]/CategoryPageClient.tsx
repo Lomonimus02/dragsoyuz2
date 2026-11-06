@@ -1,5 +1,6 @@
 "use client";
 
+import { PriceListDate } from "@/app/(root)/components/PriceListDate";
 import { seoPageCopy } from "@/lib/seo-content";
 
 import { useEffect, useRef, useState } from "react";
@@ -79,6 +80,7 @@ export function CategoryPageClient({
           <div className="rk-category-hero-grid">
             <div className="rk-category-hero-copy">
               <h1>{seoPageCopy(`/catalog/${category.slug}`)?.h1 || category.name}</h1>
+            <PriceListDate />
               <p>Товаров в разделе: {total}</p>
               <Link href="/catalog" className="rk-category-back">
                 <ArrowLeft className="w-4 h-4" /> Все категории

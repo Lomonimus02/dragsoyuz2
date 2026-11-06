@@ -407,3 +407,5 @@
     font-size: clamp(30px, 3.7vw, 52px);
   }
 }
+
+.rk-price-list-date {display: inline-block; margin-top: .5rem; padding: .2rem .65rem; border-radius: .45rem; background: #eef3eb; color: #36523e; font-size: .8125rem; font-weight: 500; line-height: 1.4;}

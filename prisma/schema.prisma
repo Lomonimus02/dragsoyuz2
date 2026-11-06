@@ -44,8 +44,9 @@ model GlobalSettings {
   aboutPhotoUrl String? // URL фото для страницы "О компании"
 
   // Плашка над шапкой (можно скрыть и менять текст в админке)
-  showArrivalNotice Boolean @default(true)
-  arrivalNoticeText String  @default("❗️Время прибытия необходимо согласовать заранее❗️")
+  priceListDate DateTime? @db.Date
+  showArrivalNotice Boolean @default(false)
+  arrivalNoticeText String  @default("")
 
   // Скидки калькулятора по периоду года выпуска (проценты: until1990, from1990, from2000, from2010)
   yearPeriodDiscounts Json @default("{\"until1990\":0,\"from1990\":10,\"from2000\":20,\"from2010\":40}")

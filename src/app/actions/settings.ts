@@ -81,6 +81,7 @@ export interface GlobalSettingsData {
   aboutText: string;
   aboutPhotoUrl: string;
   // Показывать ли плашку над шапкой
+  priceListDate: string | null;
   showArrivalNotice: boolean;
   // Текст плашки над шапкой
   arrivalNoticeText: string;
@@ -115,6 +116,7 @@ export interface UpdateGlobalSettingsInput {
   storePhotoUrls?: string[];
   aboutText?: string;
   aboutPhotoUrl?: string;
+  priceListDate?: string | null;
   showArrivalNotice?: boolean;
   arrivalNoticeText?: string;
   yearPeriodDiscounts?: YearPeriodDiscounts;
@@ -294,6 +296,7 @@ function serializeGlobalSettings(settings: {
   storePhotoUrls: string[];
   aboutText: string | null;
   aboutPhotoUrl: string | null;
+  priceListDate: Date | null;
   showArrivalNotice: boolean;
   arrivalNoticeText: string | null;
   yearPeriodDiscounts: unknown;
@@ -322,10 +325,10 @@ function serializeGlobalSettings(settings: {
     storePhotoUrls: settings.storePhotoUrls ?? [],
     aboutText: settings.aboutText ?? "",
     aboutPhotoUrl: settings.aboutPhotoUrl ?? "",
-    showArrivalNotice: settings.showArrivalNotice ?? true,
+    priceListDate: settings.priceListDate?.toISOString().slice(0,10) ?? null,
+    showArrivalNotice: settings.showArrivalNotice ?? false,
     arrivalNoticeText:
-      settings.arrivalNoticeText?.trim() ||
-      "❗️Время прибытия необходимо согласовать заранее❗️",
+      settings.arrivalNoticeText?.trim() || "",
     yearPeriodDiscounts: parseYearPeriodDiscounts(settings.yearPeriodDiscounts),
     infoPageButtonColorPresets: parseInfoPageButtonColorPresets(
       settings.infoPageButtonColorPresets,
@@ -452,10 +455,18 @@ export async function updateGlobalSettings(
     if (input.storePhotoUrls !== undefined) updateData.storePhotoUrls = input.storePhotoUrls;
     if (input.aboutText !== undefined) updateData.aboutText = input.aboutText;
     if (input.aboutPhotoUrl !== undefined) updateData.aboutPhotoUrl = input.aboutPhotoUrl;
+    let priceListDate: Date | null = null;
+    if (input.priceListDate !== undefined) {
+      if (input.priceListDate) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(input.priceListDate)) return { success:false, error:"Укажите действительную дату прайса" };
+        priceListDate = new Date(input.priceListDate + "T00:00:00Z");
+        if (!Number.isFinite(priceListDate.getTime()) || priceListDate.toISOString().slice(0,10) !== input.priceListDate) return {success:false,error:"Укажите действительную дату прайса"};
+      }
+      updateData.priceListDate = priceListDate?.toISOString() ?? null;
+    }
     if (input.showArrivalNotice !== undefined) updateData.showArrivalNotice = input.showArrivalNotice;
     if (input.arrivalNoticeText !== undefined) {
-      updateData.arrivalNoticeText = input.arrivalNoticeText.trim() ||
-        "❗️Время прибытия необходимо согласовать заранее❗️";
+      updateData.arrivalNoticeText = input.arrivalNoticeText.trim();
     }
     if (yearPeriodDiscounts !== undefined) {
       updateData.yearPeriodDiscounts = yearPeriodDiscounts;
@@ -480,10 +491,10 @@ export async function updateGlobalSettings(
         storePhotoUrls: input.storePhotoUrls ?? [],
         aboutText: input.aboutText ?? "",
         aboutPhotoUrl: input.aboutPhotoUrl ?? "",
-        showArrivalNotice: input.showArrivalNotice ?? true,
+        priceListDate,
+        showArrivalNotice: input.showArrivalNotice ?? false,
         arrivalNoticeText:
-          input.arrivalNoticeText?.trim() ||
-          "❗️Время прибытия необходимо согласовать заранее❗️",
+          input.arrivalNoticeText?.trim() || "",
         yearPeriodDiscounts: yearPeriodDiscounts ?? parseYearPeriodDiscounts(null),
       },
     });

@@ -1,3 +1,4 @@
+import { PriceListDate } from "@/app/(root)/components/PriceListDate";
 import { CatalogImage as Image } from "./CatalogImage";
 import Link from "next/link";
 import { ArrowLeft, Info } from "@/app/(root)/components/icons";
@@ -284,6 +285,7 @@ export function ProductDetailView({
             ) : (
               <SimplePriceBlock product={product} />
             )}
+            <PriceListDate />
           </section>
 
           <div className="rk-detail-actions space-y-2">

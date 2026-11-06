@@ -8,6 +8,7 @@ import { JivoWidget } from "./components/JivoWidget";
 import { YandexMetrika } from "./components/YandexMetrika";
 import { PromoPopup } from "./components/PromoPopup";
 import { IosChromeRestoreReload } from "./components/IosChromeRestoreReload";
+import { PriceListDateProvider } from "./components/PriceListDate";
 import { SiteContactsProvider } from "./components/SiteContactsProvider";
 import { YearDiscountsProvider } from "./components/YearDiscountsProvider";
 import { buildSellContactInfo, formatPhoneHref, formatTelegramHref, SITE_BRAND, DEFAULT_SITE_EMAIL, DEFAULT_SITE_VK_URL } from "@/lib/site";
@@ -81,12 +82,12 @@ export default async function RootLayout({
       <div className="storefront-shell h-full flex flex-col bg-[var(--background)] overflow-y-auto overflow-x-hidden overscroll-none print:h-auto print:overflow-visible print:bg-white" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="sticky top-0 z-50 bg-[var(--gray-700)] shrink-0 print:hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <TopAlert
-          show={settings?.showArrivalNotice ?? true}
+          show={settings?.showArrivalNotice ?? false}
           text={settings?.arrivalNoticeText}
         />
         <Header contactInfo={headerContactInfo} categories={navigationCategories} />
       </div>
-      <main className="flex-1">{children}</main>
+      <main className="flex-1"><PriceListDateProvider value={settings?.priceListDate ?? null}>{children}</PriceListDateProvider></main>
       <div className="print:hidden">
         <Footer contactInfo={footerContactInfo} />
       </div>

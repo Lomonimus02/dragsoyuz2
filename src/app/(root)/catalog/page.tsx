@@ -1,3 +1,4 @@
+import { PriceListDate } from "@/app/(root)/components/PriceListDate";
 import { seoPageCopy } from "@/lib/seo-content";
 import { Suspense } from "react";
 import { Metadata } from "next";
@@ -136,6 +137,7 @@ export default async function CatalogPage() {
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
             {seoPageCopy("/catalog")?.h1}
           </h1>
+            <PriceListDate />
           <p className="text-white/70 mt-2">
             Актуальные цены скупки на основе курса драгоценных металлов
           </p>

@@ -1,16 +1,12 @@
-const DEFAULT_ARRIVAL_NOTICE_TEXT =
-  "❗️Время прибытия необходимо согласовать заранее❗️";
-
 export function TopAlert({
-  show = true,
+  show = false,
   text,
 }: {
   show?: boolean;
   text?: string | null;
 }) {
-  if (!show) return null;
-
-  const message = text?.trim() || DEFAULT_ARRIVAL_NOTICE_TEXT;
+  const message = text?.trim();
+  if (!show || !message) return null;
 
   return (
     <div className="rk-top-alert bg-[var(--gray-700)] text-white py-2 px-4">
