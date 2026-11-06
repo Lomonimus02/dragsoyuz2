@@ -106,6 +106,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             banner: bannerConfigFromCategory(category),
             infoPageEnabled: category.infoPageEnabled,
             infoPageButtonLabel: category.infoPageButtonLabel,
+            infoPageButtonSubtitle: category.infoPageButtonSubtitle,
             infoPageButtonColor: category.infoPageButtonColor,
             infoPageButtonTextColor: category.infoPageButtonTextColor,
           }}

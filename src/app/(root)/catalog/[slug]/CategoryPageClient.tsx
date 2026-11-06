@@ -23,6 +23,7 @@ interface CategoryPageClientProps {
     banner: CategoryBannerConfig;
     infoPageEnabled: boolean;
     infoPageButtonLabel: string | null;
+    infoPageButtonSubtitle: string | null;
     infoPageButtonColor: string | null;
     infoPageButtonTextColor: string | null;
   };
@@ -106,6 +107,7 @@ export function CategoryPageClient({
           banner={category.banner}
           infoPageEnabled={category.infoPageEnabled}
           infoPageButtonLabel={category.infoPageButtonLabel}
+          infoPageButtonSubtitle={category.infoPageButtonSubtitle}
           infoPageButtonColor={category.infoPageButtonColor}
           infoPageButtonTextColor={category.infoPageButtonTextColor}
           categoryTitleInHeading

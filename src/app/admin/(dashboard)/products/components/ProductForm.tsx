@@ -102,6 +102,8 @@ interface FormData {
   hasModifications: boolean;
   modLabel: string;
   modifications: {
+    rowId?: string;
+    unitType?: UnitType | "";
     name: string;
     contentAu: number;
     contentAg: number;
@@ -220,6 +222,8 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
       hasModifications: product?.hasModifications ?? false,
       modLabel: product?.modLabel ?? "Модификация",
       modifications: product?.modifications?.map((m) => ({
+        rowId: m.id,
+        unitType: m.unitType ?? "",
         name: m.name,
         contentAu: m.contentAu,
         contentAg: m.contentAg,
@@ -235,7 +239,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control,
     name: "modifications",
   });
@@ -253,6 +257,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
   // Суффикс для содержания металлов в зависимости от единицы измерения
   const contentSuffix = useMemo(() => {
     switch (watchUnitType) {
+      case "CONTACT": return "мг/контакт";
       case "GRAM": return "мг/г";
       case "KG": return "мг/кг";
       default: return "мг/шт";
@@ -532,6 +537,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
       if (isEditing) {
         result = await updateProduct({
           id: product.id,
+          expectedUpdatedAt: product.updatedAt,
           name: data.name,
           slug: data.slug,
           description: hasDescription ? data.description || null : null,
@@ -964,9 +970,10 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                   <option value="PIECE">Штука (шт)</option>
                   <option value="GRAM">Грамм (г)</option>
                   <option value="KG">Килограмм (кг)</option>
+                  <option value="CONTACT">Контакт разъёма</option>
                 </select>
                 <p className="mt-1 text-xs text-slate-500">
-                  Определяет единицу цены (₽/шт, ₽/г, ₽/кг) и содержания металлов (мг/шт, мг/г, мг/кг)
+                  Определяет, за что указаны цена и содержание металлов: за штуку, контакт, грамм или килограмм.
                 </p>
               </div>
 
@@ -1218,6 +1225,10 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                       <span className="text-sm font-semibold text-slate-700">
                         #{index + 1}
                       </span>
+                      <div className="ml-auto mr-2 flex gap-2">
+                        <button type="button" disabled={index === 0} onClick={() => move(index, index - 1)} className="px-2 py-1 rounded border disabled:opacity-30" aria-label={`Строка ${index+1}: выше`}>↑ Выше</button>
+                        <button type="button" disabled={index === fields.length-1} onClick={() => move(index, index + 1)} className="px-2 py-1 rounded border disabled:opacity-30" aria-label={`Строка ${index+1}: ниже`}>↓ Ниже</button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => remove(index)}
@@ -1228,6 +1239,13 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                       </button>
                     </div>
 
+                    <label className="mb-3 block text-sm text-slate-700">
+                      Единица цены для этой строки
+                      <select {...register(`modifications.${index}.unitType` as const)} className="ml-2 border rounded px-2 py-1">
+                        <option value="">Как у товара</option><option value="PIECE">За штуку</option><option value="CONTACT">За контакт</option><option value="GRAM">За грамм</option><option value="KG">За килограмм</option>
+                      </select>
+                      <small className="block text-slate-500">Содержание металлов ниже указывается на одну выбранную единицу.</small>
+                    </label>
                     {/* Modification Name */}
                     <div className="mb-3">
                       <label className="block text-xs font-medium text-slate-600 mb-1">

@@ -1,8 +1,17 @@
 import { roundRublesToHundred, shouldRoundPriceToHundred } from "@/lib/hundred-price";
 
-export type GramUnitType = "PIECE" | "GRAM" | "KG";
+export type GramUnitType = "PIECE" | "GRAM" | "KG" | "CONTACT";
+
+export function withVariantUnit<T extends {
+  unitType?: GramUnitType | null;
+  modifications: ReadonlyArray<{id: string; unitType?: GramUnitType | null}>;
+}>(product: T, id: string | null): T & { explicitVariantUnit?: boolean } {
+  const unit = id ? product.modifications.find(m => m.id === id)?.unitType : null;
+  return unit ? { ...product, unitType: unit, explicitVariantUnit: true } : product;
+}
 
 export type GramQuantityProduct = {
+  explicitVariantUnit?: boolean;
   unitType?: GramUnitType | null;
   categorySlug?: string | null;
   categoryName?: string | null;
@@ -57,6 +66,7 @@ const WEIGHT_PRICED_DESPITE_PIECE_SLUGS: ReadonlySet<string> = new Set([
 
 export function usesGramQuantity(product: GramQuantityProduct): boolean {
   if (product.unitType === "KG" || product.unitType === "GRAM") return true;
+  if (product.unitType === "CONTACT" || product.explicitVariantUnit) return false;
   if (
     product.slug &&
     WEIGHT_PRICED_DESPITE_PIECE_SLUGS.has(product.slug.toLowerCase())
@@ -162,6 +172,7 @@ export function getInventoryPriceUnitSuffix(
   unitType: GramUnitType | null | undefined,
   gramMode: boolean,
 ): string {
+  if (unitType === "CONTACT") return "/контакт";
   if (unitType === "GRAM") return "/г.";
   if (unitType === "KG" || gramMode) return "/кг.";
   return "/шт.";

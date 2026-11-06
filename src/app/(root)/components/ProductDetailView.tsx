@@ -13,6 +13,7 @@ import { productSeoCopy } from "@/lib/seo-content";
 
 function getPriceUnitSuffix(unitType: UnitType): string {
   switch (unitType) {
+    case "CONTACT": return "/контакт";
     case "GRAM":
       return "/г.";
     case "KG":
@@ -24,6 +25,7 @@ function getPriceUnitSuffix(unitType: UnitType): string {
 
 function getUnitShort(unitType: UnitType): string {
   switch (unitType) {
+    case "CONTACT": return "1 контакт";
     case "GRAM":
       return "1 г";
     case "KG":
@@ -74,7 +76,7 @@ function ModificationsDetailTable({
   unitType: UnitType;
   modLabel?: string;
 }) {
-  const suffix = getPriceUnitSuffix(unitType);
+
   const showBothPrices = !isSingleType && isNewAvailable && isUsedAvailable;
 
   if (isPriceOnRequest) {
@@ -103,6 +105,7 @@ function ModificationsDetailTable({
           )}
         </div>
         {modifications.map((mod, idx) => {
+          const suffix = getPriceUnitSuffix(mod.unitType ?? unitType);
           const price =
             isSingleType || isNewAvailable ? mod.priceNew : mod.priceUsed;
           const isLast = idx === modifications.length - 1;
@@ -265,7 +268,7 @@ export function ProductDetailView({
 
           <section className="rounded-2xl border border-[var(--gray-200)] bg-white p-5 sm:p-6 shadow-sm">
             <p className="text-sm font-medium text-[var(--gray-500)] mb-4">
-              Цены скупки за {getUnitShort(product.unitType)}
+              {product.hasModifications && product.modifications.some(m => m.unitType && m.unitType !== product.unitType) ? "Цены скупки по вариантам" : `Цены скупки за ${getUnitShort(product.unitType)}`}
             </p>
 
             {product.hasModifications && product.modifications.length > 0 ? (

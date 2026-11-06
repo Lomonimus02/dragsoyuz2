@@ -28,6 +28,8 @@ interface CategoryInfoPageEditorProps {
   categoryName: string;
   enabled: boolean;
   buttonLabel: string;
+  subtitle: string;
+  onSubtitleChange: (value: string) => void;
   buttonColor: string;
   buttonTextColor: string;
   blocks: CategoryInfoBlock[];
@@ -45,7 +47,7 @@ function newId(): string {
 export function CategoryInfoPageEditor({
   categoryName,
   enabled,
-  buttonLabel,
+  buttonLabel, subtitle, onSubtitleChange,
   buttonColor,
   buttonTextColor,
   blocks,
@@ -176,6 +178,11 @@ export function CategoryInfoPageEditor({
             микросхемах (логика)»
           </p>
         </div>
+
+        <label className="block text-sm font-medium text-slate-700">Пояснение под кнопкой (необязательно)
+          <input value={subtitle} onChange={e => onSubtitleChange(e.target.value)} maxLength={200} placeholder="Определение года по маркировке, уценка по году выпуска" className="mt-1 block w-full border rounded-lg px-4 py-2.5" />
+          <small className="text-slate-500">Показывается в скобках на отдельной строке. Оставьте пустым, если пояснение не нужно.</small>
+        </label>
 
         <InfoButtonColorField
           label="Цвет кнопки"

@@ -32,6 +32,7 @@ interface CategoryBannerEditorProps {
   bannerTextLegacy: string;
   infoPageEnabled?: boolean;
   infoPageButtonLabel?: string | null;
+  infoPageButtonSubtitle?: string | null;
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   values: CategoryBannerFormValues;
@@ -50,6 +51,7 @@ export function CategoryBannerEditor({
   bannerTextLegacy,
   infoPageEnabled = false,
   infoPageButtonLabel,
+  infoPageButtonSubtitle,
   infoPageButtonColor,
   infoPageButtonTextColor,
   values,
@@ -379,6 +381,7 @@ export function CategoryBannerEditor({
               banner={previewBanner}
               infoPageEnabled={infoPageEnabled}
               infoPageButtonLabel={infoPageButtonLabel}
+              infoPageButtonSubtitle={infoPageButtonSubtitle}
               infoPageButtonColor={infoPageButtonColor}
               infoPageButtonTextColor={infoPageButtonTextColor}
             />

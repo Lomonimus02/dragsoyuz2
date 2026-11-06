@@ -7,7 +7,7 @@ type PriceGroupHint = {
   productName?: string | null;
   slug?: string | null;
   name?: string | null;
-  unitType?: "PIECE" | "GRAM" | "KG" | null;
+  unitType?: "PIECE" | "GRAM" | "KG" | "CONTACT" | null;
 };
 
 /**

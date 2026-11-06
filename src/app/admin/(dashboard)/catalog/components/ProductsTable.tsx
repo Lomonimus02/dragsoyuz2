@@ -126,6 +126,7 @@ function PriceDisplay({ product }: { product: ProductWithPrice }) {
 // Единица измерения
 function formatUnit(unitType: string): string {
   switch (unitType) {
+    case "CONTACT": return "контакт";
     case "GRAM":
       return "г";
     case "KG":

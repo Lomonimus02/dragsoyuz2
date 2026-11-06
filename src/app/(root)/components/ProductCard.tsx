@@ -24,6 +24,7 @@ interface ProductCardProps {
 // Получить суффикс единицы измерения для цены
 function getPriceUnitSuffix(unitType: UnitType): string {
   switch (unitType) {
+    case "CONTACT": return "/контакт";
     case "GRAM": return "/г.";
     case "KG": return "/кг.";
     default: return "/шт.";
@@ -56,7 +57,7 @@ function ModificationsTable({
   isUsedAvailable: boolean;
   unitType: UnitType;
 }) {
-  const suffix = getPriceUnitSuffix(unitType);
+
   const showBothPrices = !isSingleType && isNewAvailable && isUsedAvailable;
 
   return (
@@ -75,6 +76,7 @@ function ModificationsTable({
       </div>
       {/* Строки */}
       {modifications.map((mod, idx) => {
+          const suffix = getPriceUnitSuffix(mod.unitType ?? unitType);
         const singlePrice = isSingleType || isNewAvailable ? mod.priceNew : mod.priceUsed;
         const isLast = idx === modifications.length - 1;
         return (

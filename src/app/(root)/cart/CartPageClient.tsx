@@ -38,7 +38,7 @@ import {
   getInventoryPriceUnitSuffix,
   isQuantityDraft,
   parseQuantityInput,
-  usesGramQuantity,
+  usesGramQuantity, withVariantUnit,
 } from "@/lib/gram-quantity";
 import type { ProductWithPrice, ProductsResult } from "@/app/actions";
 import { AdminMetalReport } from "./AdminMetalReport";
@@ -112,7 +112,7 @@ interface InventoryRow {
 }
 
 function rowQuantity(row: InventoryRow): string {
-  return row.manual ? formatManualQuantity(row.manual) : formatInventoryQuantity(row.line.quantity, rowGramMode(row.product));
+  return row.manual ? formatManualQuantity(row.manual) : row.product?.unitType === "CONTACT" ? `${row.line.quantity} конт.` : formatInventoryQuantity(row.line.quantity, rowGramMode(row.product));
 }
 
 function rowCondition(row: InventoryRow): string {
@@ -127,10 +127,12 @@ function rowPeriod(row: InventoryRow): string {
 function InventoryQtyControl({
   quantity,
   gramMode,
+  contactMode = false,
   onQuantityChange,
 }: {
   quantity: number;
   gramMode: boolean;
+  contactMode?: boolean;
   onQuantityChange: (quantity: number) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -168,10 +170,10 @@ function InventoryQtyControl({
         }}
         onBlur={() => setDraft(null)}
         className="w-14 h-7 text-center font-semibold bg-transparent border-none outline-none tabular-nums"
-        aria-label={gramMode ? "Количество, г" : "Количество"}
+        aria-label={contactMode ? "Количество контактов" : gramMode ? "Количество, г" : "Количество"}
       />
-      {gramMode ? (
-        <span className="text-xs text-[var(--gray-500)]">г.</span>
+      {gramMode || contactMode ? (
+        <span className="text-xs text-[var(--gray-500)]">{contactMode ? "конт." : "г."}</span>
       ) : null}
       <button
         type="button"
@@ -283,7 +285,8 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
   const rows: InventoryRow[] = useMemo(
     () => {
       const catalogRows: InventoryRow[] = items.map((line) => {
-        const product = productsById[line.productId] ?? null;
+        const baseProduct = productsById[line.productId];
+        const product = baseProduct ? withVariantUnit(baseProduct, line.modificationId) : null;
         const applyYearOverlay = product
           ? shouldApplyYearDiscount(product)
           : false;
@@ -333,9 +336,10 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
   const totalSum = rows.reduce((sum, row) => sum + row.lineTotal, 0);
   const totalPieces = rows.reduce(
     (sum, row) =>
-      (row.manual ? row.manual.unit !== "PIECE" : rowGramMode(row.product)) ? sum : sum + row.line.quantity,
+      (row.manual ? row.manual.unit !== "PIECE" : (rowGramMode(row.product) || row.product?.unitType === "CONTACT")) ? sum : sum + row.line.quantity,
     0,
   );
+  const totalContacts = rows.reduce((sum,row) => sum + (row.product?.unitType === "CONTACT" ? row.line.quantity : 0),0);
   const totalGrams = rows.reduce(
     (sum, row) =>
       row.manual
@@ -513,7 +517,7 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
                             }}
                           /> : <span className="tabular-nums">{rowQuantity(row)}</span> : <InventoryQtyControl
                             quantity={row.line.quantity}
-                            gramMode={rowGramMode(row.product)}
+                            gramMode={rowGramMode(row.product)} contactMode={row.product?.unitType === "CONTACT"}
                             onQuantityChange={(quantity) =>
                               updateLineQuantity(row.line.lineId, quantity)
                             }
@@ -647,7 +651,8 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
                     <span>Строк:</span>
                     <span>{rows.length}</span>
                   </div>
-                  {totalPieces > 0 ? (
+                  {totalContacts > 0 && <div className="flex justify-between gap-4"><span>Всего контактов:</span><span>{totalContacts}</span></div>}
+              {totalPieces > 0 ? (
                     <div className="flex justify-between text-[var(--gray-600)]">
                       <span>Всего, шт.:</span>
                       <span>{totalPieces}</span>

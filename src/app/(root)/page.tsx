@@ -161,8 +161,9 @@ function OrganizationSchema({ name, phone, email, address, workSchedule, telegra
 }
 
 // Получить суффикс единицы измерения для цены
-function getPriceUnitSuffix(unitType: "PIECE" | "GRAM" | "KG"): string {
+function getPriceUnitSuffix(unitType: "PIECE" | "GRAM" | "KG" | "CONTACT"): string {
   switch (unitType) {
+    case "CONTACT": return "/контакт";
     case "GRAM": return "/г.";
     case "KG": return "/кг.";
     default: return "/шт.";
@@ -317,15 +318,15 @@ async function CatalogSection() {
                             {showUsed ? (
                               <>
                                 <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0">
-                                  {formatPrice(mod.priceNew)}{getPriceUnitSuffix(item.unitType)}
+                                  {formatPrice(mod.priceNew)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
                                 </span>
                                 <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0">
-                                  {formatPrice(mod.priceUsed)}{getPriceUnitSuffix(item.unitType)}
+                                  {formatPrice(mod.priceUsed)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
                                 </span>
                               </>
                             ) : (
                               <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap text-xs w-[55%] shrink-0">
-                                {formatPrice(singlePrice)}{getPriceUnitSuffix(item.unitType)}
+                                {formatPrice(singlePrice)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
                               </span>
                             )}
                           </div>

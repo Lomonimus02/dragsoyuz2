@@ -33,7 +33,7 @@ export function isGoldBearingGroup(id: PrintGroupId): id is GoldBearingGroupId {
 }
 
 type CatalogHint = {
-  unitType?: "PIECE" | "GRAM" | "KG" | null;
+  unitType?: "PIECE" | "GRAM" | "KG" | "CONTACT" | null;
   categorySlug?: string | null;
   categoryName?: string | null;
   productName?: string | null;

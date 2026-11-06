@@ -1,7 +1,7 @@
 import type { InventoryLine, ItemCondition } from "@/store";
 import {
   quantityToPriceMultiplier,
-  usesGramQuantity,
+  usesGramQuantity, withVariantUnit,
 } from "@/lib/gram-quantity";
 import {
   shouldApplyYearDiscount,
@@ -25,7 +25,7 @@ export type MetalTotals = {
 
 export type InventoryMetalProduct = {
   isSingleType: boolean;
-  unitType?: "PIECE" | "GRAM" | "KG" | null;
+  unitType?: "PIECE" | "GRAM" | "KG" | "CONTACT" | null;
   inventoryMetalsMode?: InventoryMetalsMode | null;
   categorySlug?: string | null;
   categoryName?: string | null;
@@ -42,6 +42,7 @@ export type InventoryMetalProduct = {
   contentPalladiumUsed: number;
   contentTantalumUsed: number;
   modifications: Array<{
+    unitType?: "PIECE" | "GRAM" | "KG" | "CONTACT" | null;
     id: string;
     contentAu: number;
     contentAg: number;
@@ -141,8 +142,9 @@ export function accumulateInventoryMetals(
   let usedTotals: MetalTotals = { ...EMPTY_TOTALS };
 
   for (const line of lines) {
-    const product = productsById[line.productId];
-    if (!product) continue;
+    const base = productsById[line.productId];
+    if (!base) continue;
+    const product = withVariantUnit(base, line.modificationId);
 
     const unit = resolveLineMetalContent(
       product,
@@ -211,8 +213,9 @@ export function accumulateGoldAuByGroup(
   const connectors = emptyGoldAuBucket();
 
   for (const line of lines) {
-    const product = productsById[line.productId];
-    if (!product) continue;
+    const base = productsById[line.productId];
+    if (!base) continue;
+    const product = withVariantUnit(base, line.modificationId);
 
     if (
       !shouldCountInventoryAu({

@@ -120,6 +120,7 @@ model Category {
 
   // CMS-страница категории (/catalog/[slug]/guide)
   infoPageEnabled         Boolean @default(false)
+  infoPageButtonSubtitle  String?
   infoPageButtonLabel     String?
   infoPageButtonColor     String? // CSS-цвет фона кнопки (hex), null = primary-700
   infoPageButtonTextColor String? // CSS-цвет текста кнопки (hex), null = белый
@@ -155,6 +156,7 @@ enum UnitType {
   PIECE // Штука (шт)
   GRAM  // Грамм (г)
   KG    // Килограмм (кг)
+  CONTACT // Один контакт разъёма
 }
 
 // Ручной флаг учёта золота в описи (AUTO = текущая логика по категории)
@@ -249,6 +251,8 @@ model Product {
 // Модификация товара (вариация: разные номиналы, контакты и т.д.)
 // Для каждой модификации хранится своё содержание металлов и рассчитывается своя цена
 model ProductModification {
+  position Int @default(0)
+  unitType UnitType? // null inherits the product unit
   id        String @id @default(cuid())
   productId String
   name      String // Например: "R = 1 кОм" или "Папа 10 контактов"
@@ -271,6 +275,7 @@ model ProductModification {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
+  @@index([productId, position, id])
   @@map("product_modifications")
 }
 

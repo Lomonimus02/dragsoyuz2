@@ -100,6 +100,7 @@ export function CategoryForm({
   const [infoPageEnabled, setInfoPageEnabled] = useState(
     editCategory?.infoPageEnabled ?? false,
   );
+  const [infoPageButtonSubtitle, setInfoPageButtonSubtitle] = useState(editCategory?.infoPageButtonSubtitle || "");
   const [infoPageButtonLabel, setInfoPageButtonLabel] = useState(
     editCategory?.infoPageButtonLabel || "",
   );
@@ -245,6 +246,7 @@ export function CategoryForm({
           bannerTitleLines: data.bannerTitleLines,
           infoPageEnabled,
           infoPageButtonLabel: infoPageButtonLabel.trim() || null,
+          infoPageButtonSubtitle: infoPageButtonSubtitle.trim() || null,
           infoPageButtonColor: infoPageButtonColor.trim() || null,
           infoPageButtonTextColor: infoPageButtonTextColor.trim() || null,
           infoPageBlocks,
@@ -277,6 +279,7 @@ export function CategoryForm({
           bannerTitleLines: data.bannerTitleLines,
           infoPageEnabled,
           infoPageButtonLabel: infoPageButtonLabel.trim() || null,
+          infoPageButtonSubtitle: infoPageButtonSubtitle.trim() || null,
           infoPageButtonColor: infoPageButtonColor.trim() || null,
           infoPageButtonTextColor: infoPageButtonTextColor.trim() || null,
           infoPageBlocks,
@@ -478,6 +481,7 @@ export function CategoryForm({
             warningMessage={watchWarningMessage}
             bannerTextLegacy={editCategory?.bannerText || ""}
             infoPageEnabled={infoPageEnabled}
+            infoPageButtonSubtitle={infoPageButtonSubtitle}
             infoPageButtonLabel={
               infoPageButtonLabel.trim() || defaultInfoButtonLabel(watchName)
             }
@@ -506,6 +510,8 @@ export function CategoryForm({
             categoryName={watchName}
             enabled={infoPageEnabled}
             buttonLabel={infoPageButtonLabel}
+            subtitle={infoPageButtonSubtitle}
+            onSubtitleChange={setInfoPageButtonSubtitle}
             buttonColor={infoPageButtonColor}
             buttonTextColor={infoPageButtonTextColor}
             blocks={infoPageBlocks}

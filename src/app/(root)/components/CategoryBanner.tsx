@@ -25,6 +25,7 @@ export interface CategoryBannersProps {
   bannerTextLegacy?: string | null;
   infoPageEnabled?: boolean;
   infoPageButtonLabel?: string | null;
+  infoPageButtonSubtitle?: string | null;
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   categoryTitleInHeading?: boolean;
@@ -219,6 +220,7 @@ export function CategoryBanners({
   bannerTextLegacy,
   infoPageEnabled = false,
   infoPageButtonLabel,
+  infoPageButtonSubtitle,
   infoPageButtonColor,
   infoPageButtonTextColor,
   categoryTitleInHeading = false,
@@ -245,6 +247,10 @@ export function CategoryBanners({
   const isPreviewSlug = !categorySlug || categorySlug === "preview";
   const infoHref = isPreviewSlug ? "#" : `/catalog/${categorySlug}/guide`;
   const infoLabel = resolveInfoButtonLabel(infoPageButtonLabel, categoryName);
+  const subtitle = infoPageButtonSubtitle?.trim().replace(/^\((.*)\)$/, "$1").trim();
+  const buttonContent = (
+    <span>{infoLabel}{subtitle && <small className="block font-normal">({subtitle})</small>}</span>
+  );
   const resolvedButtonColor = normalizeInfoPageButtonColor(infoPageButtonColor);
   const resolvedButtonTextColor =
     normalizeInfoPageButtonColor(infoPageButtonTextColor) ??
@@ -277,7 +283,7 @@ export function CategoryBanners({
         (isPreviewSlug ? (
           <span className={infoButtonClassName} style={infoButtonStyle}>
             <BookOpen className="rk-category-guide-icon" aria-hidden />
-            <span>{infoLabel}</span>
+            {buttonContent}
             <ArrowRight className="rk-category-guide-arrow" aria-hidden />
           </span>
         ) : (
@@ -287,7 +293,7 @@ export function CategoryBanners({
             style={infoButtonStyle}
           >
             <BookOpen className="rk-category-guide-icon" aria-hidden />
-            <span>{infoLabel}</span>
+            {buttonContent}
             <ArrowRight className="rk-category-guide-arrow" aria-hidden />
           </Link>
         ))}

@@ -81,6 +81,7 @@ function pickBannerInput(input: {
 function pickInfoPageFields(category: {
   infoPageEnabled: boolean;
   infoPageButtonLabel: string | null;
+  infoPageButtonSubtitle: string | null;
   infoPageButtonColor: string | null;
   infoPageButtonTextColor: string | null;
   infoPageBlocks: unknown;
@@ -89,6 +90,7 @@ function pickInfoPageFields(category: {
   return {
     infoPageEnabled: category.infoPageEnabled,
     infoPageButtonLabel: category.infoPageButtonLabel,
+    infoPageButtonSubtitle: category.infoPageButtonSubtitle,
     infoPageButtonColor: normalizeInfoPageButtonColor(
       category.infoPageButtonColor,
     ),
@@ -103,6 +105,7 @@ function pickInfoPageFields(category: {
 function pickInfoPageInput(input: {
   infoPageEnabled?: boolean;
   infoPageButtonLabel?: string | null;
+  infoPageButtonSubtitle?: string | null;
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   infoPageBlocks?: CategoryInfoBlock[];
@@ -110,6 +113,7 @@ function pickInfoPageInput(input: {
 }) {
   const data: Record<string, unknown> = {};
   if (input.infoPageEnabled !== undefined) data.infoPageEnabled = input.infoPageEnabled;
+  if (input.infoPageButtonSubtitle !== undefined) data.infoPageButtonSubtitle = input.infoPageButtonSubtitle?.trim() || null;
   if (input.infoPageButtonLabel !== undefined) {
     data.infoPageButtonLabel = input.infoPageButtonLabel?.trim() || null;
   }
@@ -160,6 +164,7 @@ export interface CategoryData {
   bannerShowGuide: boolean;
   infoPageEnabled: boolean;
   infoPageButtonLabel: string | null;
+  infoPageButtonSubtitle: string | null;
   infoPageButtonColor: string | null;
   infoPageButtonTextColor: string | null;
   infoPageBlocks: CategoryInfoBlock[];
@@ -200,6 +205,7 @@ export interface CreateCategoryInput {
   bannerShowGuide?: boolean;
   infoPageEnabled?: boolean;
   infoPageButtonLabel?: string | null;
+  infoPageButtonSubtitle?: string | null;
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   infoPageBlocks?: CategoryInfoBlock[];
@@ -237,6 +243,7 @@ export interface UpdateCategoryInput {
   bannerShowGuide?: boolean;
   infoPageEnabled?: boolean;
   infoPageButtonLabel?: string | null;
+  infoPageButtonSubtitle?: string | null;
   infoPageButtonColor?: string | null;
   infoPageButtonTextColor?: string | null;
   infoPageBlocks?: CategoryInfoBlock[];
@@ -795,11 +802,11 @@ export interface CategoryShowcaseItem {
   isUsedAvailable: boolean;
   isSingleType: boolean;   // Ð•Ð´Ð¸Ð½Ð°Ñ Ñ†ÐµÐ½Ð° (Ð±ÐµÐ· Ñ€Ð°Ð·Ð´ÐµÐ»ÐµÐ½Ð¸Ñ Ð½Ð° Ð‘/Ð£)
   isPriceOnRequest: boolean; // Ð¦ÐµÐ½Ð° Ð¿Ð¾ Ð·Ð°Ð¿Ñ€Ð¾ÑÑƒ
-  unitType: "PIECE" | "GRAM" | "KG"; // Ð•Ð´Ð¸Ð½Ð¸Ñ†Ð° Ð¸Ð·Ð¼ÐµÑ€ÐµÐ½Ð¸Ñ
+  unitType: "PIECE" | "GRAM" | "KG" | "CONTACT"; // Ð•Ð´Ð¸Ð½Ð¸Ñ†Ð° Ð¸Ð·Ð¼ÐµÑ€ÐµÐ½Ð¸Ñ
   // Модификации
   hasModifications: boolean;
   modLabel: string;
-  modifications: { id: string; name: string; priceNew: number; priceUsed: number }[];
+  modifications: { id: string; unitType: "PIECE" | "GRAM" | "KG" | "CONTACT" | null; name: string; priceNew: number; priceUsed: number }[];
   // Ð”Ð°Ð½Ð½Ñ‹Ðµ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸ Ð´Ð»Ñ ÑÑÑ‹Ð»ÐºÐ¸
   categorySlug: string;    // slug ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸
   categoryName: string;    // Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸
@@ -878,7 +885,7 @@ export async function getCategoryShowcase(limit: number = 10): Promise<CategoryS
             // Модификации
             hasModifications: true,
             modLabel: true,
-            modifications: true,
+            modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
           },
         },
         // Подкатегории с их товарами и кастомными курсами
@@ -921,7 +928,7 @@ export async function getCategoryShowcase(limit: number = 10): Promise<CategoryS
             // Модификации
             hasModifications: true,
             modLabel: true,
-            modifications: true,
+            modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
               },
             },
           },
@@ -1081,8 +1088,9 @@ export async function getCategoryShowcase(limit: number = 10): Promise<CategoryS
             return {
               id: mod.id,
               name: mod.name,
-              priceNew: applyHundredPrice(modPrices.priceNew, priceHint) ?? modPrices.priceNew,
-              priceUsed: applyHundredPrice(modPrices.priceUsed, priceHint) ?? modPrices.priceUsed,
+              unitType: mod.unitType,
+              priceNew: applyHundredPrice(modPrices.priceNew, { ...priceHint, unitType: mod.unitType ?? chosenProduct.unitType }) ?? modPrices.priceNew,
+              priceUsed: applyHundredPrice(modPrices.priceUsed, { ...priceHint, unitType: mod.unitType ?? chosenProduct.unitType }) ?? modPrices.priceUsed,
             };
           }),
           categorySlug: category.slug,

@@ -30,7 +30,7 @@ import {
   getInventoryPriceUnitSuffix,
   isQuantityDraft,
   parseQuantityInput,
-  usesGramQuantity,
+  usesGramQuantity, withVariantUnit,
 } from "@/lib/gram-quantity";
 import {
   shouldApplyYearDiscount,
@@ -50,6 +50,7 @@ interface AddedSummary {
   yearPeriodId: YearPeriodId;
   customDiscountPercent: number | null;
   modificationName: string | null;
+  modificationId: string | null;
 }
 
 function formatPrice(price: number): string {
@@ -76,6 +77,7 @@ function formatQuantityLabel(
   unitType: UnitType,
   gramMode: boolean,
 ): string {
+  if (unitType === "CONTACT") return `${quantity} конт.`;
   if (gramMode) return formatInventoryQuantity(quantity, true);
   switch (unitType) {
     case "GRAM":
@@ -108,8 +110,8 @@ function formatAddedSummary(
   const parts = [
     formatQuantityLabel(
       summary.quantity,
-      product.unitType,
-      usesGramQuantity(product),
+      withVariantUnit(product, summary.modificationId).unitType,
+      usesGramQuantity(withVariantUnit(product, summary.modificationId)),
     ),
   ];
   if (summary.modificationName) {
@@ -121,7 +123,7 @@ function formatAddedSummary(
   if (summary.customDiscountPercent !== null) {
     parts.push(`уценка ${summary.customDiscountPercent}%`);
   }
-  if (shouldShowYearPicker(product)) {
+  if (shouldShowYearPicker(withVariantUnit(product, summary.modificationId))) {
     parts.push(getYearPeriodLabel(summary.yearPeriodId));
   }
   return `Добавлено ${index + 1}: ${parts.join(", ")}`;
@@ -158,9 +160,13 @@ export function CalculatorModal({
   const isEditing = Boolean(editLine);
   const showConditionPicker =
     !product.isSingleType && product.isNewAvailable && product.isUsedAvailable;
-  const gramMode = usesGramQuantity(product);
-  const showYearPicker = shouldShowYearPicker(product);
-  const applyYearDiscount = shouldApplyYearDiscount(product);
+  const [modificationId, setModificationId] = useState<string | null>(() =>
+    editLine ? editLine.modificationId : defaultModificationId(product),
+  );
+  const pricedProduct = withVariantUnit(product, modificationId);
+  const gramMode = usesGramQuantity(pricedProduct);
+  const showYearPicker = shouldShowYearPicker(pricedProduct);
+  const applyYearDiscount = shouldApplyYearDiscount(pricedProduct);
 
   const [isOpen, setIsOpen] = useState(
     isEditing && shouldShowCalculator(product),
@@ -195,9 +201,6 @@ export function CalculatorModal({
   const [quantityInput, setQuantityInput] = useState(() =>
     editLine ? formatQuantityDraft(editLine.quantity, gramMode) : "",
   );
-  const [modificationId, setModificationId] = useState<string | null>(() =>
-    editLine ? editLine.modificationId : defaultModificationId(product),
-  );
   const [conditionError, setConditionError] = useState(false);
   const [yearError, setYearError] = useState(false);
   const [quantityError, setQuantityError] = useState(false);
@@ -212,7 +215,7 @@ export function CalculatorModal({
 
   const needsMod =
     product.hasModifications && product.modifications.length > 0;
-  const suffix = getInventoryPriceUnitSuffix(product.unitType, gramMode);
+  const suffix = getInventoryPriceUnitSuffix(pricedProduct.unitType, gramMode);
   const gatesReady =
     (!showConditionPicker || condition !== null) &&
     (!showYearPicker || yearPeriodId !== null);
@@ -243,7 +246,7 @@ export function CalculatorModal({
       )
     : 0;
   const previewQuantity = parseQuantityInput(quantityInput, gramMode) ?? 0;
-  const lineTotal = computeLineTotal(unitPrice, previewQuantity, product);
+  const lineTotal = computeLineTotal(unitPrice, previewQuantity, pricedProduct);
 
   const close = useCallback(
     (fromPopState = false) => {
@@ -269,7 +272,7 @@ export function CalculatorModal({
 
   const open = () => {
     setCondition(showConditionPicker ? null : defaultCondition(product));
-    setYearPeriodId(showYearPicker ? null : "until1990");
+    setYearPeriodId(shouldShowYearPicker(withVariantUnit(product, defaultModificationId(product))) ? null : "until1990");
     setCustomMarkdownEnabled(false);
     setCustomDiscountInput("");
     setQuantityInput("");
@@ -414,7 +417,7 @@ export function CalculatorModal({
         condition: resolvedCondition,
         yearPeriodId: resolvedYear,
         customDiscountPercent: lineCustomDiscount,
-        modificationName,
+        modificationName, modificationId,
       },
     ]);
     resetAfterAdd();
@@ -481,9 +484,15 @@ export function CalculatorModal({
                   </legend>
                   <select
                     value={modificationId ?? ""}
-                    onChange={(e) =>
-                      setModificationId(e.target.value || null)
-                    }
+                    onChange={(e) => {
+                      const next = e.target.value || null;
+                      const nextProduct = withVariantUnit(product, next);
+                      if (nextProduct.unitType !== pricedProduct.unitType) setQuantityInput("");
+                      if (shouldShowYearPicker(nextProduct) !== showYearPicker) {
+                        setYearPeriodId(shouldShowYearPicker(nextProduct) ? null : "until1990");
+                      }
+                      setModificationId(next);
+                    }}
                     className="w-full px-3 py-2.5 rounded-lg border border-[var(--gray-300)] bg-white text-[var(--gray-900)] font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)]"
                   >
                     <option value="">
@@ -678,7 +687,7 @@ export function CalculatorModal({
 
               <fieldset className="mb-5">
                 <legend className="text-sm font-bold text-[var(--gray-800)] mb-2">
-                  {gramMode ? "Количество, г" : "Количество"}
+                  {pricedProduct.unitType === "CONTACT" ? "Количество контактов" : gramMode ? "Количество, г" : "Количество"}
                 </legend>
                 <div className="flex items-center gap-2">
                   <button
@@ -703,7 +712,7 @@ export function CalculatorModal({
                       setQuantityInput(raw);
                       setQuantityError(false);
                     }}
-                    aria-label={gramMode ? "Количество, г" : "Количество"}
+                    aria-label={pricedProduct.unitType === "CONTACT" ? "Количество контактов" : gramMode ? "Количество, г" : "Количество"}
                     className="min-w-0 flex-1 h-10 text-center font-bold rounded-lg border border-[var(--gray-300)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] disabled:bg-[var(--gray-100)] disabled:text-[var(--gray-400)] disabled:cursor-not-allowed"
                   />
                   <button

@@ -1,5 +1,7 @@
 "use server";
 
+import { modificationValues, buildVariantMutation } from "@/lib/catalog-variants";
+
 import { isAuthenticated } from "./auth";
 
 import { prisma } from "@/lib/prisma";
@@ -26,7 +28,7 @@ export interface ProductFilters {
 /**
  * Единица измерения товара
  */
-export type UnitType = "PIECE" | "GRAM" | "KG";
+export type UnitType = "PIECE" | "GRAM" | "KG" | "CONTACT";
 
 /**
  * Ручной флаг учёта золота в описи (AUTO = логика по категории)
@@ -37,6 +39,7 @@ export type InventoryMetalsMode = "AUTO" | "INCLUDE" | "EXCLUDE";
  * Модификация товара с рассчитанными ценами
  */
 export interface ModificationWithPrice {
+  unitType: UnitType | null;
   id: string;
   name: string;
   contentAu: number;
@@ -57,6 +60,8 @@ export interface ModificationWithPrice {
  * Входные данные для модификации (создание/обновление)
  */
 export interface ModificationInput {
+  rowId?: string;
+  unitType?: UnitType | null | "";
   name: string;
   contentAu?: number;
   contentAg?: number;
@@ -197,6 +202,7 @@ export interface CreateProductInput {
  * Входные данные для обновления товара
  */
 export interface UpdateProductInput {
+  expectedUpdatedAt?: Date;
   id: string;
   name?: string;
   slug?: string;
@@ -306,6 +312,7 @@ interface DbProductWithCategory {
   hasModifications: boolean;
   modLabel?: string;
   modifications: {
+    unitType: UnitType | null;
     id: string;
     name: string;
     contentAu: number;
@@ -613,6 +620,7 @@ function serializeProduct(
     );
     return {
       id: mod.id,
+      unitType: mod.unitType,
       name: mod.name,
       contentAu: mod.contentAu,
       contentAg: mod.contentAg,
@@ -624,8 +632,8 @@ function serializeProduct(
       contentPtUsed: mod.contentPtUsed,
       contentPdUsed: mod.contentPdUsed,
       contentTaUsed: mod.contentTaUsed,
-      priceNew: applyHundredPrice(modPrices.priceNew, priceHint) ?? modPrices.priceNew,
-      priceUsed: applyHundredPrice(modPrices.priceUsed, priceHint) ?? modPrices.priceUsed,
+      priceNew: applyHundredPrice(modPrices.priceNew, { ...priceHint, unitType: mod.unitType ?? product.unitType }) ?? modPrices.priceNew,
+      priceUsed: applyHundredPrice(modPrices.priceUsed, { ...priceHint, unitType: mod.unitType ?? product.unitType }) ?? modPrices.priceUsed,
     };
   });
 
@@ -931,7 +939,7 @@ export async function getProducts(
                 customRateTa: true,
               },
             },
-            modifications: true,
+            modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
           },
           orderBy: { sortOrder: "asc" },
         }),
@@ -1042,7 +1050,7 @@ export async function getProducts(
                 customRateTa: true,
             },
           },
-          modifications: true,
+          modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
         },
         orderBy: { sortOrder: "asc" },
         // Если включены подкатегории, загружаем больше для клиентской сортировки
@@ -1124,7 +1132,7 @@ export async function getProductById(id: string): Promise<ProductResult> {
                 customRateTa: true,
             },
           },
-          modifications: true,
+          modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
         },
       }),
       getCurrentRates(),
@@ -1172,7 +1180,7 @@ export async function getProductBySlug(slug: string): Promise<ProductResult> {
                 customRateTa: true,
             },
           },
-          modifications: true,
+          modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
         },
       }),
       getCurrentRates(),
@@ -1279,19 +1287,7 @@ export async function createProduct(
         ...(input.modifications?.length ? {
           modifications: {
             createMany: {
-              data: input.modifications.map((m) => ({
-                name: m.name,
-                contentAu: m.contentAu ?? 0,
-                contentAg: m.contentAg ?? 0,
-                contentPt: m.contentPt ?? 0,
-                contentPd: m.contentPd ?? 0,
-                contentTa: m.contentTa ?? 0,
-                contentAuUsed: m.contentAuUsed ?? 0,
-                contentAgUsed: m.contentAgUsed ?? 0,
-                contentPtUsed: m.contentPtUsed ?? 0,
-                contentPdUsed: m.contentPdUsed ?? 0,
-                contentTaUsed: m.contentTaUsed ?? 0,
-              })),
+              data: input.modifications.map(modificationValues),
             },
           },
         } : {}),
@@ -1327,7 +1323,7 @@ export async function createProduct(
                 customRateTa: true,
           },
         },
-        modifications: true,
+        modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
       },
     });
 
@@ -1519,39 +1515,13 @@ export async function updateProduct(
     if (input.manualPriceNew !== undefined) updateData.manualPriceNew = input.manualPriceNew;
     if (input.manualPriceUsed !== undefined) updateData.manualPriceUsed = input.manualPriceUsed;
 
-    // Если переданы модификации — удаляем старые и создаём новые (deleteMany -> createMany)
+    // The relation is updated in one nested write. Saved inventory lines reference these IDs.
     if (input.modifications !== undefined) {
-      await prisma.productModification.deleteMany({
-        where: { productId: input.id },
-      });
+      updateData.modifications = buildVariantMutation(input.modifications);
     }
-
-    // Обновляем товар
     const product = await prisma.product.update({
-      where: { id: input.id },
-      data: {
-        ...updateData,
-        // Создаём новые модификации если переданы
-        ...(input.modifications?.length ? {
-          modifications: {
-            createMany: {
-              data: input.modifications.map((m) => ({
-                name: m.name,
-                contentAu: m.contentAu ?? 0,
-                contentAg: m.contentAg ?? 0,
-                contentPt: m.contentPt ?? 0,
-                contentPd: m.contentPd ?? 0,
-                contentTa: m.contentTa ?? 0,
-                contentAuUsed: m.contentAuUsed ?? 0,
-                contentAgUsed: m.contentAgUsed ?? 0,
-                contentPtUsed: m.contentPtUsed ?? 0,
-                contentPdUsed: m.contentPdUsed ?? 0,
-                contentTaUsed: m.contentTaUsed ?? 0,
-              })),
-            },
-          },
-        } : {}),
-      },
+      where: { id: input.id, ...(input.expectedUpdatedAt ? { updatedAt: input.expectedUpdatedAt } : {}) },
+      data: updateData,
       include: {
         category: {
           select: {
@@ -1565,7 +1535,7 @@ export async function updateProduct(
                 customRateTa: true,
           },
         },
-        modifications: true,
+        modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
       },
     });
 
@@ -1596,6 +1566,9 @@ export async function updateProduct(
       data: serialized,
     };
   } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2025") {
+      return { success: false, error: "Товар или его строки изменились. Обновите страницу и повторите сохранение." };
+    }
     console.error("Ошибка при обновлении товара:", error);
     return {
       success: false,
@@ -1669,7 +1642,7 @@ export async function getProductsByIds(ids: string[]): Promise<ProductsResult> {
                 customRateTa: true,
             },
           },
-          modifications: true,
+          modifications: { orderBy: [{ position: "asc" }, { id: "asc" }] },
         },
       }),
       getCurrentRates(),
