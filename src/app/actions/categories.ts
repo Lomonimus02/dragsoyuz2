@@ -937,7 +937,7 @@ export async function getCategoryShowcase(limit: number = 10): Promise<CategoryS
     });
 
     // Ð˜Ð¼Ð¿Ð¾Ñ€Ñ‚Ð¸Ñ€ÑƒÐµÐ¼ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¸ Ñ€Ð°ÑÑ‡Ñ‘Ñ‚Ð° Ñ†ÐµÐ½
-    const { calculateBasePrice, resolveRates, calculateModificationPrices } = await import("@/lib/price-calculator");
+    const { calculateBasePrice, calculateMarkedUpPrice, resolveRates, calculateModificationPrices } = await import("@/lib/price-calculator");
 
     const showcaseItems: CategoryShowcaseItem[] = [];
 
@@ -1000,9 +1000,9 @@ export async function getCategoryShowcase(limit: number = 10): Promise<CategoryS
             const basePrice = calculateBasePrice(
               product.contentGold, product.contentSilver,
               product.contentPlatinum, product.contentPalladium, rates,
-              product.contentTantalum
+              product.contentTantalum, product.unitType
             );
-            priceNew = Math.round(basePrice * effectiveMarkup * 100) / 100;
+            priceNew = calculateMarkedUpPrice(basePrice, effectiveMarkup, product.unitType);
           }
         }
         
@@ -1014,9 +1014,9 @@ export async function getCategoryShowcase(limit: number = 10): Promise<CategoryS
             const basePriceUsed = calculateBasePrice(
               product.contentGoldUsed, product.contentSilverUsed,
               product.contentPlatinumUsed, product.contentPalladiumUsed, rates,
-              product.contentTantalumUsed
+              product.contentTantalumUsed, product.unitType
             );
-            priceUsed = Math.round(basePriceUsed * effectiveMarkupUsed * 100) / 100;
+            priceUsed = calculateMarkedUpPrice(basePriceUsed, effectiveMarkupUsed, product.unitType);
           }
         }
         
@@ -1079,7 +1079,7 @@ export async function getCategoryShowcase(limit: number = 10): Promise<CategoryS
             const effectiveMarkup = (chosenProduct.priceMarkup ?? 1) * markup;
             const effectiveMarkupUsed = (chosenProduct.priceMarkupUsed ?? 1) * markup;
             const modPrices = calculateModificationPrices(
-              { contentAu: mod.contentAu, contentAg: mod.contentAg, contentPt: mod.contentPt, contentPd: mod.contentPd, contentTa: mod.contentTa, contentAuUsed: mod.contentAuUsed, contentAgUsed: mod.contentAgUsed, contentPtUsed: mod.contentPtUsed, contentPdUsed: mod.contentPdUsed, contentTaUsed: mod.contentTaUsed },
+              { unitType: mod.unitType ?? chosenProduct.unitType, contentAu: mod.contentAu, contentAg: mod.contentAg, contentPt: mod.contentPt, contentPd: mod.contentPd, contentTa: mod.contentTa, contentAuUsed: mod.contentAuUsed, contentAgUsed: mod.contentAgUsed, contentPtUsed: mod.contentPtUsed, contentPdUsed: mod.contentPdUsed, contentTaUsed: mod.contentTaUsed },
               metalRates,
               chosenProduct.categoryRates,
               effectiveMarkup,

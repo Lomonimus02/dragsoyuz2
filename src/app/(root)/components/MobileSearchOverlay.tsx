@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRubles } from "@/lib/ruble-price";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, Loader2, Package } from "@/app/(root)/components/icons";
@@ -219,7 +220,7 @@ export function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOverlayProp
                   <div className="flex items-center gap-2 mt-1">
                     {product.priceNew && (
                       <span className="text-sm font-semibold text-[var(--primary-600)]">
-                        {product.priceNew.toLocaleString("ru-RU")} ₽
+                        {formatRubles(product.priceNew, product.unitType)}
                       </span>
                     )}
                     {product.priceUsed && product.priceNew && (
@@ -227,7 +228,7 @@ export function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOverlayProp
                     )}
                     {product.priceUsed && (
                       <span className="text-sm text-[var(--gray-500)]">
-                        б/у {product.priceUsed.toLocaleString("ru-RU")} ₽
+                        б/у {formatRubles(product.priceUsed, product.unitType)}
                       </span>
                     )}
                   </div>

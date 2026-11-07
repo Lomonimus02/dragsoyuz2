@@ -1,3 +1,6 @@
+import type { UnitType } from "@/app/actions/products";
+import { toKopecks } from "./ruble-price";
+
 /**
  * Price Calculator — расчёт цен на товары по содержанию драгоценных металлов
  * 
@@ -42,6 +45,7 @@ export interface CategoryCustomRates {
  * - Ag, Ta — в г
  */
 export interface MetalContent {
+  unitType?: UnitType | null;
   // Содержание для НОВЫХ товаров (мг)
   contentGold: unknown;
   contentSilver: unknown;
@@ -77,6 +81,7 @@ export interface MetalContent {
  * Содержание металлов в модификации товара
  */
 export interface ModificationContent {
+  unitType?: UnitType | null;
   contentAu: number;
   contentAg: number;
   contentPt: number;
@@ -173,6 +178,7 @@ export function calculateBasePrice(
   contentPd: unknown,
   rates: ResolvedRates,
   contentTa: unknown = 0,
+  unitType?: UnitType | null,
 ): number {
   const au = Number(contentAu) || 0;
   const ag = Number(contentAg) || 0;
@@ -188,7 +194,17 @@ export function calculateBasePrice(
     pd * rates.palladium +
     ta * rates.tantalum;
 
-  return Math.round(price * 100) / 100;
+  // Keep the full contact value until the markup has been applied.
+  return unitType === "CONTACT" ? price : Math.round(price * 100) / 100;
+}
+
+export function calculateMarkedUpPrice(base: number, markup: number, unitType?: UnitType | null): number {
+  const price = base * markup;
+  return unitType === "CONTACT" ? toKopecks(price) / 100 : Math.round(price * 100) / 100;
+}
+
+function roundUnitPrice(price: number, unitType?: UnitType | null): number {
+  return unitType === "CONTACT" ? toKopecks(price) / 100 : Math.round(price);
 }
 
 /**
@@ -232,8 +248,9 @@ export function calculateProductPrices(
         product.contentPalladium,
         rates,
         product.contentTantalum,
+        product.unitType,
       );
-      priceNew = Math.round(basePrice * markup * 100) / 100;
+      priceNew = calculateMarkedUpPrice(basePrice, markup, product.unitType);
     }
   }
 
@@ -256,16 +273,16 @@ export function calculateProductPrices(
         product.contentPalladiumUsed,
         rates,
         product.contentTantalumUsed,
+        product.unitType,
       );
       // Используем markupUsed для Б/У товаров
-      priceUsed = Math.round(basePrice * markupUsed * 100) / 100;
+      priceUsed = calculateMarkedUpPrice(basePrice, markupUsed, product.unitType);
     }
   }
 
-  // Округляем итоговые цены до целых чисел
   return { 
-    priceNew: priceNew !== null ? Math.round(priceNew) : null, 
-    priceUsed: priceUsed !== null ? Math.round(priceUsed) : null, 
+    priceNew: priceNew !== null ? roundUnitPrice(priceNew, product.unitType) : null,
+    priceUsed: priceUsed !== null ? roundUnitPrice(priceUsed, product.unitType) : null,
     isSingleType 
   };
 }
@@ -281,7 +298,7 @@ export function calculateProductPrices(
  * @param categoryRates - Кастомные курсы категории
  * @param markup - Эффективная наценка для Нового (product.priceMarkup * globalMarkup)
  * @param markupUsed - Эффективная наценка для Б/У (product.priceMarkupUsed * globalMarkup)
- * @returns Объект { priceNew, priceUsed } — округлённые до целого
+ * @returns Объект { priceNew, priceUsed }
  */
 export function calculateModificationPrices(
   modification: ModificationContent,
@@ -299,6 +316,7 @@ export function calculateModificationPrices(
     modification.contentPd,
     rates,
     modification.contentTa,
+    modification.unitType,
   );
 
   const basePriceUsed = calculateBasePrice(
@@ -308,11 +326,12 @@ export function calculateModificationPrices(
     modification.contentPdUsed,
     rates,
     modification.contentTaUsed,
+    modification.unitType,
   );
 
   return {
-    priceNew: Math.round(basePriceNew * markup),
-    priceUsed: Math.round(basePriceUsed * markupUsed),
+    priceNew: roundUnitPrice(basePriceNew * markup, modification.unitType),
+    priceUsed: roundUnitPrice(basePriceUsed * markupUsed, modification.unitType),
   };
 }
 
@@ -335,14 +354,7 @@ export function calculateProductPrice(
 /**
  * Форматирует цену для отображения
  */
-export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
-}
+export { formatCatalogPrice as formatPrice } from "./ruble-price";
 
 /**
  * Число с ограничением знаков после запятой без лишних нулей (0.75, не 0.7500).

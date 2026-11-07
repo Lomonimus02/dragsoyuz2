@@ -1,3 +1,4 @@
+import { toKopecks } from "./ruble-price";
 import { roundRublesToHundred, shouldRoundPriceToHundred } from "@/lib/hundred-price";
 
 export type GramUnitType = "PIECE" | "GRAM" | "KG" | "CONTACT";
@@ -121,6 +122,7 @@ export function computeLineTotal(
   quantity: number,
   product: GramQuantityProduct | null | undefined,
 ): number {
+  if (product?.unitType === "CONTACT") return (toKopecks(unitPrice) * quantity) / 100;
   if (!product || !usesGramQuantity(product)) {
     return finishLineTotal(unitPrice * quantity, product);
   }

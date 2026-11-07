@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRubles } from "@/lib/ruble-price";
 import { uploadPhoto, preparePhotoForUpload } from "@/lib/upload-photo";
 import { composeCatalogCard, removeProductBackground } from "@/lib/product-photo-client";
 
@@ -1426,7 +1427,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                     <span className="text-xs font-medium">Примерная расчётная цена:</span>
                     <span className="text-sm font-bold">
                       {calculatedPrices.priceNew > 0 
-                        ? `${calculatedPrices.priceNew.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} ₽`
+                        ? formatRubles(calculatedPrices.priceNew, watchUnitType)
                         : "—"
                       }
                     </span>
@@ -1505,7 +1506,7 @@ export function ProductForm({ product, categories, metalRates, defaultCategoryId
                       <span className="text-xs font-medium">Примерная расчётная цена:</span>
                       <span className="text-sm font-bold">
                         {calculatedPrices.priceUsed > 0 
-                          ? `${calculatedPrices.priceUsed.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} ₽`
+                          ? formatRubles(calculatedPrices.priceUsed, watchUnitType)
                           : "—"
                         }
                       </span>

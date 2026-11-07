@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRubles } from "@/lib/ruble-price";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ClipboardList, Minus, Plus, X } from "@/app/(root)/components/icons";
@@ -51,15 +52,6 @@ interface AddedSummary {
   customDiscountPercent: number | null;
   modificationName: string | null;
   modificationId: string | null;
-}
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(price);
 }
 
 function parseMarkdownPercent(raw: string): number {
@@ -740,7 +732,7 @@ export function CalculatorModal({
                     <div className="flex justify-between text-sm font-semibold text-[var(--gray-700)]">
                       <span>Цена за ед.</span>
                       <span className="font-bold text-[var(--gray-900)] tabular-nums">
-                        {formatPrice(unitPrice)}
+                        {formatRubles(unitPrice, pricedProduct.unitType)}
                         {suffix}
                       </span>
                     </div>
@@ -749,7 +741,7 @@ export function CalculatorModal({
                         Сумма позиции
                       </span>
                       <span className="text-lg font-extrabold text-[var(--accent-600)] tabular-nums">
-                        {formatPrice(lineTotal)}
+                        {formatRubles(lineTotal, pricedProduct.unitType)}
                       </span>
                     </div>
                   </>

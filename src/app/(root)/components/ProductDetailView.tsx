@@ -1,3 +1,4 @@
+import { formatCatalogPrice } from "@/lib/ruble-price";
 import { PriceListDate } from "@/app/(root)/components/PriceListDate";
 import { CatalogImage as Image } from "./CatalogImage";
 import Link from "next/link";
@@ -34,15 +35,6 @@ function getUnitShort(unitType: UnitType): string {
     default:
       return "1 шт";
   }
-}
-
-function formatDetailPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
 }
 
 function PriceFootnote({
@@ -121,15 +113,15 @@ function ModificationsDetailTable({
               {showBothPrices ? (
                 <>
                   <span className="w-24 sm:w-28 text-right px-3 py-2.5 text-sm sm:text-base font-bold text-[var(--gray-900)] whitespace-nowrap tabular-nums">
-                    {formatDetailPrice(mod.priceNew)}{suffix}
+                    {formatCatalogPrice(mod.priceNew, mod.unitType ?? unitType)}{suffix}
                   </span>
                   <span className="w-24 sm:w-28 text-right px-3 py-2.5 text-sm sm:text-base font-bold text-[var(--gray-900)] whitespace-nowrap tabular-nums">
-                    {formatDetailPrice(mod.priceUsed)}{suffix}
+                    {formatCatalogPrice(mod.priceUsed, mod.unitType ?? unitType)}{suffix}
                   </span>
                 </>
               ) : (
                 <span className="w-28 sm:w-32 text-right px-3 py-2.5 text-sm sm:text-base font-bold text-[var(--gray-900)] whitespace-nowrap tabular-nums">
-                  {formatDetailPrice(price)}{suffix}
+                  {formatCatalogPrice(price, mod.unitType ?? unitType)}{suffix}
                 </span>
               )}
             </div>
@@ -164,7 +156,7 @@ function SimplePriceBlock({
               {product.isSingleType ? "Цена" : "Новые"}
             </span>
             <span className="text-xl sm:text-2xl font-bold text-[var(--gray-900)] tabular-nums">
-              {formatDetailPrice(product.priceNew)}
+              {formatCatalogPrice(product.priceNew, product.unitType)}
               {getPriceUnitSuffix(product.unitType)}
             </span>
           </div>
@@ -173,7 +165,7 @@ function SimplePriceBlock({
           <div className="flex items-center justify-between gap-4 bg-[var(--gray-50)] border border-[var(--gray-200)] px-4 py-3 rounded-lg">
             <span className="text-sm font-medium text-[var(--gray-700)]">Б/У</span>
             <span className="text-xl sm:text-2xl font-bold text-[var(--gray-900)] tabular-nums">
-              {formatDetailPrice(product.priceUsed)}
+              {formatCatalogPrice(product.priceUsed, product.unitType)}
               {getPriceUnitSuffix(product.unitType)}
             </span>
           </div>

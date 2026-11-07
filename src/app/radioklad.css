@@ -268,9 +268,10 @@
 .rk-category-notice { flex: 1 1 420px; min-width: 0; border-radius: 8px; box-shadow: none; }
 .rk-category-notice p { overflow-wrap: anywhere; }
 .rk-category-notice p.shrink-0 { flex-shrink: 1; min-width: 0; }
-.rk-category-guide-link { --guide-icon-size: 32px; grid-template-columns: var(--guide-icon-size) minmax(0, 1fr) var(--guide-icon-size); flex: 1 1 300px; width: auto; min-height: 88px; padding: 20px 24px; border-radius: 8px; font-size: 20px; line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
-.rk-category-guide-icon { width: var(--guide-icon-size); height: var(--guide-icon-size); }
-.rk-category-guide-arrow { width: 24px; height: 24px; justify-self: end; }
+.rk-category-guide-link { flex: 1 1 300px; width: auto; min-height: 88px; padding: 20px 24px; border-radius: 8px; font-size: 20px; line-height: 1.35; text-align: left; overflow-wrap: anywhere; }
+.rk-category-guide-link > span { flex: 1; min-width: 0; }
+.rk-category-guide-icon { width: 32px; height: 32px; flex: none; }
+.rk-category-guide-arrow { width: 24px; height: 24px; flex: none; }
 .rk-menu-layer { position: fixed; inset: 0; z-index: 1000; }
 .rk-menu-backdrop { position: absolute; inset: 0; background: #12241866; backdrop-filter: blur(3px); }
 .rk-drawer { position: absolute; right: 0; top: 0; bottom: 0; width: 76%; max-width: 400px; background: #f7f6f1; padding: 22px; overflow-y: auto; overscroll-behavior: contain; box-shadow: -20px 0 70px #1d352b22; animation: rk-drawer-enter .22s ease-out; }
@@ -396,7 +397,8 @@
   .rk-category-list-heading p { font-size: 16px; line-height: 1.45; }
   .rk-category-notices { margin-bottom: 24px; }
   .rk-category-notice { padding: 18px; }
-  .rk-category-guide-link { --guide-icon-size: 27px; padding: 16px; font-size: 18px; min-height: 76px; gap: 12px; }
+  .rk-category-guide-link { padding: 16px; font-size: 18px; min-height: 76px; gap: 12px; }
+  .rk-category-guide-icon { width: 27px; height: 27px; }
   .rk-category-guide-arrow { width: 20px; height: 20px; }
   .rk-about-hero > div > .container { padding-block: 45px; }
   .rk-about-content h2 { font-size: 27px; }

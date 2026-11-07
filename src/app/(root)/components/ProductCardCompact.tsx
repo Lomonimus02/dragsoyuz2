@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCatalogPrice } from "@/lib/ruble-price";
 import { useState } from "react";
 import { productCatalogPath } from "@/lib/seo-routing";
 import { CatalogImage as Image } from "./CatalogImage";
@@ -25,16 +26,6 @@ function getPriceUnitSuffix(unitType: UnitType): string {
     case "KG": return "/кг.";
     default: return "/шт.";
   }
-}
-
-// Форматирование цены
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
 }
 
 // Компактная таблица модификаций для карточки в каталоге
@@ -82,15 +73,15 @@ function ModificationsTableCompact({
             {showBothPrices ? (
               <>
                 <span className="rk-modification-price" role="cell">
-                  <strong>{formatPrice(mod.priceNew).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
+                  <strong>{formatCatalogPrice(mod.priceNew, mod.unitType ?? unitType).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
                 </span>
                 <span className="rk-modification-price" role="cell">
-                  <strong>{formatPrice(mod.priceUsed).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
+                  <strong>{formatCatalogPrice(mod.priceUsed, mod.unitType ?? unitType).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
                 </span>
               </>
             ) : (
               <span className="rk-modification-price" role="cell">
-                <strong>{formatPrice(singlePrice).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
+                <strong>{formatCatalogPrice(singlePrice, mod.unitType ?? unitType).replace(/\s*₽$/, "")}</strong><small>₽{suffix}</small>
               </span>
             )}
           </div>
@@ -195,7 +186,7 @@ export function ProductCardCompact({ product, contactInfo }: ProductCardCompactP
                     {product.isSingleType ? 'Цена' : 'Новые'}
                   </span>
                   <span className="text-sm font-bold text-[var(--gray-900)]">
-                    {formatPrice(product.priceNew!)}{getPriceUnitSuffix(product.unitType)}
+                    {formatCatalogPrice(product.priceNew!, product.unitType)}{getPriceUnitSuffix(product.unitType)}
                   </span>
                 </div>
               )}
@@ -203,7 +194,7 @@ export function ProductCardCompact({ product, contactInfo }: ProductCardCompactP
                 <div className="rk-price-row flex items-center justify-between">
                   <span className="text-sm font-medium text-[var(--gray-900)]">Б/У</span>
                   <span className="text-sm font-bold text-[var(--gray-900)]">
-                    {formatPrice(product.priceUsed!)}{getPriceUnitSuffix(product.unitType)}
+                    {formatCatalogPrice(product.priceUsed!, product.unitType)}{getPriceUnitSuffix(product.unitType)}
                   </span>
                 </div>
               )}

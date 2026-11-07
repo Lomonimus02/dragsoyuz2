@@ -1,12 +1,18 @@
+import type { UnitType } from "@/app/actions/products";
+import { withVariantUnit } from "./gram-quantity";
+import { toKopecks } from "./ruble-price";
+
 type LineCondition = "new" | "used";
 
 interface PricedModification {
+  unitType?: UnitType | null;
   id: string;
   priceNew: number;
   priceUsed: number;
 }
 
 interface PricedProduct {
+  unitType?: UnitType | null;
   isPriceOnRequest: boolean;
   hasModifications: boolean;
   modifications: PricedModification[];
@@ -197,8 +203,12 @@ export function resolveLineUnitPrice(
   applyYearOverlay: boolean,
   useCustomMarkdown: boolean,
 ): number {
+  const basePrice = resolveLineBasePrice(product, modificationId, condition);
+  if (withVariantUnit(product, modificationId).unitType === "CONTACT") {
+    return toKopecks(applyYearPercentToAmount(basePrice, discountPercent)) / 100;
+  }
   return applyYearDiscount(
-    resolveLineBasePrice(product, modificationId, condition),
+    basePrice,
     discountPercent,
     yearPeriodId,
     applyYearOverlay,

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRubles } from "@/lib/ruble-price";
 import { useState, useCallback, useTransition } from "react";
 import Link from "next/link";
 import {
@@ -36,17 +37,6 @@ function useDebounce<T extends (...args: Parameters<T>) => void>(
   return debouncedCallback;
 }
 
-// Форматирование цены
-function formatPrice(price: number | null): string {
-  if (price === null) return "—";
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(price);
-}
-
 // Компонент отображения цены
 function PriceDisplay({ product }: { product: ProductWithPrice }) {
   const unit = formatUnit(product.unitType);
@@ -57,7 +47,7 @@ function PriceDisplay({ product }: { product: ProductWithPrice }) {
       <div className="space-y-0.5">
         <div className="flex items-baseline gap-1">
           <span className="font-semibold text-indigo-600">
-            {formatPrice(product.priceNew)}
+            {formatRubles(product.priceNew, product.unitType)}
           </span>
           <span className="text-xs text-slate-400">/{unit}</span>
         </div>
@@ -74,7 +64,7 @@ function PriceDisplay({ product }: { product: ProductWithPrice }) {
       <div className="space-y-0.5">
         <div className="flex items-baseline gap-1">
           <span className="font-semibold text-green-600">
-            {formatPrice(product.priceNew)}
+            {formatRubles(product.priceNew, product.unitType)}
           </span>
           <span className="text-xs text-slate-400">/{unit}</span>
         </div>
@@ -89,7 +79,7 @@ function PriceDisplay({ product }: { product: ProductWithPrice }) {
       <div className="space-y-0.5">
         <div className="flex items-baseline gap-1">
           <span className="font-semibold text-amber-600">
-            {formatPrice(product.priceUsed)}
+            {formatRubles(product.priceUsed, product.unitType)}
           </span>
           <span className="text-xs text-slate-400">/{unit}</span>
         </div>
@@ -105,7 +95,7 @@ function PriceDisplay({ product }: { product: ProductWithPrice }) {
         <div className="flex items-baseline gap-1">
           <span className="text-xs text-green-600 font-medium w-10">Нов:</span>
           <span className="font-semibold text-green-600">
-            {formatPrice(product.priceNew)}
+            {formatRubles(product.priceNew, product.unitType)}
           </span>
           <span className="text-xs text-slate-400">/{unit}</span>
         </div>
@@ -114,7 +104,7 @@ function PriceDisplay({ product }: { product: ProductWithPrice }) {
         <div className="flex items-baseline gap-1">
           <span className="text-xs text-amber-600 font-medium w-10">Б/У:</span>
           <span className="font-semibold text-amber-600">
-            {formatPrice(product.priceUsed)}
+            {formatRubles(product.priceUsed, product.unitType)}
           </span>
           <span className="text-xs text-slate-400">/{unit}</span>
         </div>

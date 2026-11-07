@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRubles } from "@/lib/ruble-price";
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -168,7 +169,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                         <div className="flex items-center justify-end gap-1">
                           <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">Единая</span>
                           <span className="font-semibold text-slate-800">
-                            {product.priceNew.toLocaleString("ru-RU")} ₽
+                            {formatRubles(product.priceNew, product.unitType)}
                           </span>
                           {product.manualPriceNew && (
                             <span className="text-xs text-amber-600">Фикс.</span>
@@ -181,7 +182,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                           <div className="flex items-center justify-end gap-1">
                             <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded">Новое</span>
                             <span className="font-semibold text-slate-800">
-                              {product.priceNew.toLocaleString("ru-RU")} ₽
+                              {formatRubles(product.priceNew, product.unitType)}
                             </span>
                             {product.manualPriceNew && (
                               <span className="text-xs text-amber-600">Фикс.</span>
@@ -192,7 +193,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                           <div className="flex items-center justify-end gap-1">
                             <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">Б/У</span>
                             <span className="font-semibold text-slate-800">
-                              {product.priceUsed.toLocaleString("ru-RU")} ₽
+                              {formatRubles(product.priceUsed, product.unitType)}
                             </span>
                             {product.manualPriceUsed && (
                               <span className="text-xs text-amber-600">Фикс.</span>

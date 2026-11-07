@@ -1,3 +1,4 @@
+import { formatCatalogPrice } from "@/lib/ruble-price";
 import { PriceListDate } from "@/app/(root)/components/PriceListDate";
 import { seoPageCopy } from "@/lib/seo-content";
 import Link from "next/link";
@@ -171,16 +172,6 @@ function getPriceUnitSuffix(unitType: "PIECE" | "GRAM" | "KG" | "CONTACT"): stri
   }
 }
 
-// Форматирование цены
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
-}
-
 // The section order stays unchanged; only presentation is replaced.
 function HeroSection() {
   return (
@@ -320,15 +311,15 @@ async function CatalogSection() {
                             {showUsed ? (
                               <>
                                 <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0">
-                                  {formatPrice(mod.priceNew)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
+                                  {formatCatalogPrice(mod.priceNew, mod.unitType ?? item.unitType)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
                                 </span>
                                 <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0">
-                                  {formatPrice(mod.priceUsed)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
+                                  {formatCatalogPrice(mod.priceUsed, mod.unitType ?? item.unitType)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
                                 </span>
                               </>
                             ) : (
                               <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap text-xs w-[55%] shrink-0">
-                                {formatPrice(singlePrice)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
+                                {formatCatalogPrice(singlePrice, mod.unitType ?? item.unitType)}{getPriceUnitSuffix(mod.unitType ?? item.unitType)}
                               </span>
                             )}
                           </div>
@@ -343,7 +334,7 @@ async function CatalogSection() {
                             {item.isSingleType ? 'Цена' : 'Новые'}
                           </span>
                           <span className="text-sm font-bold text-[var(--gray-900)]">
-                            {formatPrice(item.priceNew)}{getPriceUnitSuffix(item.unitType)}
+                            {formatCatalogPrice(item.priceNew, item.unitType)}{getPriceUnitSuffix(item.unitType)}
                           </span>
                         </div>
                       )}
@@ -351,7 +342,7 @@ async function CatalogSection() {
                         <div className="rk-price-row flex items-center justify-between">
                           <span className="text-sm font-medium text-[var(--gray-900)]">Б/У</span>
                           <span className="text-sm font-bold text-[var(--gray-900)]">
-                            {formatPrice(item.priceUsed)}{getPriceUnitSuffix(item.unitType)}
+                            {formatCatalogPrice(item.priceUsed, item.unitType)}{getPriceUnitSuffix(item.unitType)}
                           </span>
                         </div>
                       )}

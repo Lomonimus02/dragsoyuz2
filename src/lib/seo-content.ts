@@ -7,7 +7,7 @@ export function seoPageCopy(path: string) {
     return {
       ...copy,
       title: `${SITE_BRAND} — скупка радиодеталей и плат в Санкт-Петербурге`,
-      h1: `${SITE_BRAND} — скупка радиодеталей в Санкт-Петербурге`,
+      h1: SITE_BRAND,
     };
   }
   return copy;

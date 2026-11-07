@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRubles } from "@/lib/ruble-price";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -45,15 +46,6 @@ import { AdminMetalReport } from "./AdminMetalReport";
 import { ManualInventoryForm } from "./ManualInventoryForm";
 import { useAdminInventoryStore } from "@/store/admin-inventory-store";
 import { formatManualQuantity, manualInventoryTotal, manualUnitLabel, type ManualInventoryLine } from "@/lib/manual-inventory";
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(price);
-}
 
 function getConditionLabel(condition: ItemCondition, isSingleType: boolean): string {
   if (isSingleType) return "—";
@@ -527,11 +519,11 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
                           </span>
                         </td>
                         <td className="px-2 py-2 text-right whitespace-nowrap tabular-nums">
-                          {formatPrice(row.unitPrice)}
+                          {formatRubles(row.unitPrice, row.product?.unitType)}
                           {rowPriceSuffix(row.product, row.manual)}
                         </td>
                         <td className="px-2 py-2 text-right font-semibold whitespace-nowrap tabular-nums">
-                          {formatPrice(row.lineTotal)}
+                          {formatRubles(row.lineTotal, row.product?.unitType)}
                         </td>
                         <td className="px-2 py-2 print:hidden">
                           <div className="flex items-center justify-end gap-0.5">
@@ -598,11 +590,11 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
                               {rowQuantity(row)}
                             </td>
                             <td className="col-price tabular-nums">
-                              {formatPrice(row.unitPrice)}
+                              {formatRubles(row.unitPrice, row.product?.unitType)}
                               {rowPriceSuffix(row.product, row.manual)}
                             </td>
                             <td className="col-sum tabular-nums">
-                              {formatPrice(row.lineTotal)}
+                              {formatRubles(row.lineTotal, row.product?.unitType)}
                             </td>
                           </tr>
                         ))}
@@ -613,7 +605,7 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
                         Итого
                       </td>
                       <td className="col-sum tabular-nums">
-                        {formatPrice(totalSum)}
+                        {formatRubles(totalSum)}
                       </td>
                     </tr>
                   </tfoot>
@@ -672,7 +664,7 @@ export function CartPageClient({ isAdmin, catalogCategories }: { isAdmin: boolea
                         Общая сумма:
                       </span>
                       <span className="text-2xl font-bold text-[var(--accent-600)] tabular-nums">
-                        {formatPrice(totalSum)}
+                        {formatRubles(totalSum)}
                       </span>
                     </div>
                   </div>

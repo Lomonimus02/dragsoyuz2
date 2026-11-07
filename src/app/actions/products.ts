@@ -576,6 +576,7 @@ function serializeProduct(
 
   const { priceNew, priceUsed } = calculateProductPrices(
     {
+      unitType: product.unitType,
       contentGold: product.contentGold,
       contentSilver: product.contentSilver,
       contentPlatinum: product.contentPlatinum,
@@ -602,6 +603,7 @@ function serializeProduct(
   const modificationsWithPrices: ModificationWithPrice[] = (product.modifications ?? []).map((mod) => {
     const modPrices: ModificationPrices = calculateModificationPrices(
       {
+        unitType: mod.unitType ?? product.unitType,
         contentAu: mod.contentAu,
         contentAg: mod.contentAg,
         contentPt: mod.contentPt,

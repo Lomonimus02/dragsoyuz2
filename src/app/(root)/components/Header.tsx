@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRubles } from "@/lib/ruble-price";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
@@ -266,7 +267,7 @@ export function Header({ contactInfo, categories = [] }: HeaderProps) {
                             </div>
                             {product.priceNew && (
                               <span className="text-sm font-semibold text-[var(--primary-600)] whitespace-nowrap">
-                                {product.priceNew.toLocaleString("ru-RU")} ₽
+                                {formatRubles(product.priceNew, product.unitType)}
                               </span>
                             )}
                           </button>

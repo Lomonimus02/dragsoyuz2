@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCatalogPrice } from "@/lib/ruble-price";
 import { useState } from "react";
 import { productCatalogPath } from "@/lib/seo-routing";
 import { CatalogImage as Image } from "./CatalogImage";
@@ -29,16 +30,6 @@ function getPriceUnitSuffix(unitType: UnitType): string {
     case "KG": return "/кг.";
     default: return "/шт.";
   }
-}
-
-// Форматирование цены
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
 }
 
 // Компактная таблица модификаций для карточки товара в каталоге
@@ -87,15 +78,15 @@ function ModificationsTable({
             {showBothPrices ? (
               <>
                 <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0 tabular-nums">
-                  {formatPrice(mod.priceNew)}{suffix}
+                  {formatCatalogPrice(mod.priceNew, mod.unitType ?? unitType)}{suffix}
                 </span>
                 <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-[11px] w-[30%] shrink-0 tabular-nums">
-                  {formatPrice(mod.priceUsed)}{suffix}
+                  {formatCatalogPrice(mod.priceUsed, mod.unitType ?? unitType)}{suffix}
                 </span>
               </>
             ) : (
               <span className="px-1.5 py-1.5 text-left border-l border-[var(--gray-100)] font-extrabold text-[var(--gray-900)] whitespace-nowrap text-xs w-[55%] shrink-0 tabular-nums">
-                {formatPrice(singlePrice)}{suffix}
+                {formatCatalogPrice(singlePrice, mod.unitType ?? unitType)}{suffix}
               </span>
             )}
           </div>
@@ -253,7 +244,7 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
                     {product.isSingleType ? 'Цена' : 'Новые'}
                   </span>
                   <span className="text-sm font-bold text-[var(--gray-900)]">
-                    {formatPrice(product.priceNew!)}{getPriceUnitSuffix(product.unitType)}
+                    {formatCatalogPrice(product.priceNew!, product.unitType)}{getPriceUnitSuffix(product.unitType)}
                   </span>
                 </div>
               )}
@@ -263,7 +254,7 @@ export function ProductCard({ product, categorySlug, categoryName, variant = "de
                 <div className="flex items-center justify-between px-2 py-1 bg-[var(--gray-100)] border border-[var(--gray-900)] rounded-md">
                   <span className="text-sm font-medium text-[var(--gray-900)]">Б/У</span>
                   <span className="text-sm font-bold text-[var(--gray-900)]">
-                    {formatPrice(product.priceUsed!)}{getPriceUnitSuffix(product.unitType)}
+                    {formatCatalogPrice(product.priceUsed!, product.unitType)}{getPriceUnitSuffix(product.unitType)}
                   </span>
                 </div>
               )}
